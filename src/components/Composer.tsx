@@ -1,0 +1,340 @@
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown, FileText, Image as ImageIcon, Lightbulb, Mic, Paperclip, X, Zap } from "lucide-react";
+import { COMPOSER_MAX_LEN, MODELS, uid } from "../lib/luca";
+import type { Attachment, Settings, Tier } from "../lib/luca";
+
+interface Props {
+  streaming: boolean;
+  onSend: (text: string, attachments: Attachment[]) => void;
+  onStop: () => void;
+  tier: Tier;
+  onTierChange: (t: Tier) => void;
+  think: boolean;
+  onThinkChange: (v: boolean) => void;
+  settings: Settings;
+  onToast: (msg: string) => void;
+}
+
+export default function Composer({
+  streaming,
+  onSend,
+  onStop,
+  tier,
+  onTierChange,
+  think,
+  onThinkChange,
+  settings,
+  onToast,
+}: Props) {
+  const [text, setText] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [modelMenu, setModelMenu] = useState(false);
+  const [listening, setListening] = useState(false);
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const recogRef = useRef<{ stop: () => void } | null>(null);
+
+  useEffect(() => {
+    if (!modelMenu) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setModelMenu(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setModelMenu(false);
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [modelMenu]);
+
+  const autosize = () => {
+    const ta = taRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 200) + "px";
+  };
+
+  useEffect(autosize, [text]);
+
+  const canSend = (text.trim().length > 0 || attachments.length > 0) && !streaming;
+
+  const doSend = () => {
+    if (!canSend) return;
+    if (text.length > COMPOSER_MAX_LEN) {
+      onToast("Message is over the " + COMPOSER_MAX_LEN.toLocaleString() + " character limit");
+      return;
+    }
+    onSend(text.trim(), attachments);
+    setText("");
+    setAttachments([]);
+    requestAnimationFrame(() => taRef.current?.focus());
+  };
+
+  const addFiles = (files: FileList | File[]) => {
+    const list = Array.from(files);
+    for (const f of list) {
+      if (f.size > 4 * 1024 * 1024) {
+        onToast(`“${f.name}” is over 4 MB — skipped`);
+        continue;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachments((prev) => [
+          ...prev,
+          { id: uid(), name: f.name, type: f.type, size: f.size, dataUrl: String(reader.result) },
+        ]);
+      };
+      reader.readAsDataURL(f);
+    }
+  };
+
+  const toggleMic = () => {
+    const SR = (window as unknown as { webkitSpeechRecognition?: new () => {
+      lang: string;
+      continuous: boolean;
+      interimResults: boolean;
+      onresult: ((e: { results: { [i: number]: { [j: number]: { transcript: string } } } }) => void) | null;
+      onend: (() => void) | null;
+      onerror: (() => void) | null;
+      start: () => void;
+      stop: () => void;
+    } }).webkitSpeechRecognition;
+
+    if (!SR) {
+      onToast("Voice input isn't supported in this browser");
+      return;
+    }
+    if (listening) {
+      recogRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const r = new SR();
+    r.lang = "en-US";
+    r.continuous = false;
+    r.interimResults = false;
+    r.onresult = (e) => {
+      const transcript = e.results[0]?.[0]?.transcript || "";
+      if (transcript) setText((t) => (t ? t + " " : "") + transcript);
+    };
+    r.onend = () => setListening(false);
+    r.onerror = () => {
+      setListening(false);
+      onToast("Couldn't hear anything — try again");
+    };
+    r.start();
+    recogRef.current = r;
+    setListening(true);
+  };
+
+  const activeModel = MODELS.find((m) => m.tier === tier) || MODELS[1];
+  const nearLimit = text.length > COMPOSER_MAX_LEN - 20000;
+
+  return (
+    <div
+      className={`mx-auto w-full max-w-[820px] px-3 pb-3.5 pt-1.5 sm:px-5 ${dragOver ? "" : ""}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+      }}
+    >
+      <div
+        className={`rounded-3xl border bg-surface4 p-1.5 pb-2 transition-all duration-200 ${
+          dragOver
+            ? "border-accent"
+            : "border-line focus-within:border-linestrong focus-within:shadow-[0_0_0_4px_rgba(74,158,255,0.07),0_10px_30px_rgba(0,0,0,0.35)]"
+        }`}
+      >
+        {attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2 px-2.5 pb-2 pt-1.5">
+            {attachments.map((a) => (
+              <div
+                key={a.id}
+                className="anim-pop flex items-center gap-2 rounded-lg border border-linestrong bg-surface3 py-1.5 pl-1.5 pr-2 text-[12.5px]"
+              >
+                {a.type.startsWith("image/") ? (
+                  <img src={a.dataUrl} alt="" className="h-7 w-7 rounded-md object-cover" />
+                ) : (
+                  <span className="grid h-7 w-7 place-items-center rounded-md bg-surface4 text-mute">
+                    {a.type.startsWith("image") ? <ImageIcon size={14} /> : <FileText size={14} />}
+                  </span>
+                )}
+                <span className="max-w-[140px] truncate">{a.name}</span>
+                <button
+                  onClick={() => setAttachments((prev) => prev.filter((x) => x.id !== a.id))}
+                  className="grid h-5 w-5 place-items-center rounded text-mute hover:bg-surface4 hover:text-ink"
+                  aria-label={`Remove ${a.name}`}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <textarea
+          ref={taRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              if (settings.enterToSend && !e.shiftKey) {
+                e.preventDefault();
+                doSend();
+              } else if (!settings.enterToSend && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                doSend();
+              }
+            }
+          }}
+          rows={1}
+          placeholder={streaming ? "Luca is replying…" : "Ask anything"}
+          aria-label="Message Luca"
+          className="block w-full resize-none border-none bg-transparent px-3 pb-1 pt-2 text-[15px] leading-relaxed text-ink outline-none placeholder:text-mute"
+        />
+
+        <div className="flex items-center gap-1.5 px-1 pt-0.5">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="grid h-8 w-8 place-items-center rounded-full text-mute transition-all hover:bg-surface3 hover:text-ink active:scale-90"
+            aria-label="Attach files"
+          >
+            <Paperclip size={17} />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) addFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+
+          <button
+            onClick={() => onThinkChange(!think)}
+            aria-pressed={think}
+            className={`flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
+              think
+                ? "border border-accent/40 bg-accent/10 text-accent"
+                : "text-mute hover:bg-surface3 hover:text-ink"
+            }`}
+            title="Extended thinking"
+          >
+            <Lightbulb size={14} />
+            Think
+            {think && <Check size={12} />}
+          </button>
+
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setModelMenu((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={modelMenu}
+              className="flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-mute transition-colors hover:bg-surface3 hover:text-ink"
+            >
+              <span id="modelMenuLabel">Luca {activeModel.label}</span>
+              <ChevronDown size={13} className={`transition-transform duration-150 ${modelMenu ? "rotate-180" : ""}`} />
+            </button>
+
+            {modelMenu && (
+              <div
+                className="anim-pop absolute bottom-10 left-0 z-50 w-[230px] rounded-xl border border-linestrong bg-surface2 p-1 shadow-[0_14px_38px_rgba(0,0,0,0.55)]"
+                role="menu"
+              >
+                {MODELS.map((m) => (
+                  <button
+                    key={m.id}
+                    role="menuitemradio"
+                    aria-checked={m.tier === tier}
+                    onClick={() => {
+                      onTierChange(m.tier);
+                      setModelMenu(false);
+                    }}
+                    className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-surface3 ${
+                      m.tier === tier ? "bg-surface3/60" : ""
+                    }`}
+                  >
+                    <span className={`mt-0.5 ${m.tier === "flash" ? "text-warn" : "text-accent"}`}>
+                      {m.tier === "flash" ? <Zap size={15} /> : <Lightbulb size={15} />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-2 text-[13.5px] font-semibold">
+                        Luca {m.label}
+                        {m.tier === tier && <Check size={13} className="text-accent" />}
+                      </span>
+                      <span className="block text-xs leading-snug text-mute">{m.desc}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1" />
+
+          {nearLimit && (
+            <span className="text-[11.5px] text-warn">{text.length.toLocaleString()} / {COMPOSER_MAX_LEN.toLocaleString()}</span>
+          )}
+
+          <button
+            onClick={toggleMic}
+            aria-pressed={listening}
+            className={`grid h-8 w-8 place-items-center rounded-full transition-all active:scale-90 ${
+              listening ? "bg-danger/15 text-danger" : "text-mute hover:bg-surface3 hover:text-ink"
+            }`}
+            aria-label="Voice input"
+          >
+            <Mic size={16} className={listening ? "animate-pulse" : ""} />
+          </button>
+
+          {streaming ? (
+            <button
+              onClick={onStop}
+              aria-label="Stop generating"
+              className="grid h-[34px] w-[34px] place-items-center rounded-full bg-surface3 text-ink transition-all hover:bg-linestrong active:scale-90"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <rect x="5" y="5" width="14" height="14" rx="3" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={doSend}
+              disabled={!canSend}
+              aria-label="Send message"
+              className={`grid h-[34px] w-[34px] place-items-center rounded-full transition-all ${
+                canSend
+                  ? "bg-accent2 text-white shadow-[0_2px_10px_rgba(90,169,255,0.28)] hover:bg-[#6db4ff] hover:shadow-[0_0_0_5px_rgba(90,169,255,0.14),0_4px_14px_rgba(90,169,255,0.35)] active:scale-90"
+                  : "bg-surface3 text-mute"
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <rect x="3.2" y="9.4" width="2.4" height="5.2" rx="1.2" />
+                <rect x="7.6" y="6.6" width="2.4" height="10.8" rx="1.2" />
+                <rect x="12" y="4.2" width="2.4" height="15.6" rx="1.2" />
+                <rect x="16.4" y="7.8" width="2.4" height="8.4" rx="1.2" />
+                <rect x="20.8" y="10" width="2.4" height="4" rx="1.2" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="pt-2 text-center text-[11.5px] text-mute/85">
+        {settings.enterToSend ? "Enter to send · Shift+Enter for a new line" : "Ctrl/⌘+Enter to send"}
+        {" · "}Luca can make mistakes
+      </div>
+    </div>
+  );
+}
