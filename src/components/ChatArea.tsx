@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, ArrowDown, Check, ChevronRight, Copy, Globe, Image as ImageIcon, Pencil, RotateCcw, Sparkles, X } from "lucide-react";
+import { AlertTriangle, ArrowDown, Check, ChevronRight, Copy, Globe, Image as ImageIcon, Pencil, RotateCcw, X } from "lucide-react";
+import Logo from "./Logo";
 import Markdown from "./Markdown";
 import { copyText, formatTime, timeOfDayGreeting } from "../lib/luca";
 import type { LucaMessage, Profile, Session, Settings, ToolRound } from "../lib/luca";
@@ -147,8 +148,8 @@ function AssistantRow({
 
   return (
     <div className="anim-rise group flex gap-3.5">
-      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[9px] border border-linestrong bg-gradient-to-b from-[#1e1e1e] to-[#151515] text-accent">
-        <Sparkles size={14} />
+      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border border-linestrong bg-gradient-to-b from-[#1e1e1e] to-[#151515] text-accent">
+        <Logo size={16} />
       </span>
 
       <div className="min-w-0 flex-1">
@@ -260,7 +261,7 @@ function UserRow({
                 }
                 if (e.key === "Escape") setEditing(false);
               }}
-              className="block w-full resize-none rounded-lg bg-transparent px-2 py-1.5 text-[15px] leading-relaxed text-ink outline-none"
+              className="block w-full resize-none rounded-lg bg-transparent px-2 py-1.5 text-[16px] leading-relaxed text-ink outline-none md:text-[15px]"
             />
             <div className="flex justify-end gap-1.5 px-1 pb-0.5">
               <button
@@ -303,7 +304,7 @@ function UserRow({
                 )}
               </div>
             )}
-            <div className="whitespace-pre-wrap rounded-[18px] rounded-br-md border border-line bg-surface2 px-4 py-2.5 text-[15px] leading-relaxed transition-colors hover:border-linestrong">
+            <div className="whitespace-pre-wrap rounded-[18px] rounded-br-md border border-line bg-surface2 px-4 py-3 text-[16px] leading-relaxed transition-colors hover:border-linestrong md:py-2.5 md:text-[15px]">
               {msg.content}
             </div>
             <div className="mt-1.5 flex items-center justify-end gap-2">
@@ -429,12 +430,6 @@ export default function ChatArea({ session, profile, settings, onSuggestion, onR
         </button>
       )}
 
-      {streaming && (
-        <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-line bg-surface2 px-3.5 py-1.5 text-[12.5px] text-mute shadow-[0_6px_18px_rgba(0,0,0,0.4)]">
-          <Sparkles size={13} className="text-accent" />
-          Luca is replying…
-        </div>
-      )}
     </div>
   );
 }

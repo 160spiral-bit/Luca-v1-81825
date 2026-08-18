@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pencil, Pin, PinOff, Plus, Search, Settings as SettingsIcon, Sparkles, Trash2, X } from "lucide-react";
+import { Check, Pencil, Pin, PinOff, Plus, Search, Settings as SettingsIcon, Trash2, X } from "lucide-react";
+import Logo from "./Logo";
 import { dayBucket } from "../lib/luca";
 import type { Profile, Session } from "../lib/luca";
 
@@ -108,7 +109,7 @@ export default function Sidebar({
         <div className="flex items-center justify-between px-3 pb-2.5 pt-3.5">
           <div className="flex items-center gap-2.5 pl-1">
             <span className="grid h-[26px] w-[26px] place-items-center rounded-lg border border-linestrong bg-gradient-to-b from-surface2 to-surface1 text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-              <Sparkles size={14} />
+              <Logo size={15} />
             </span>
             <span className="font-display text-[17px] font-semibold tracking-tight">Luca</span>
           </div>
@@ -139,7 +140,7 @@ export default function Sidebar({
               value={search}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search chats"
-              className="w-full rounded-xl border border-transparent bg-surface1 py-2 pl-9 pr-8 text-[13.5px] text-ink outline-none transition-colors placeholder:text-mute focus:border-linestrong focus:bg-surface2"
+              className="w-full rounded-xl border border-transparent bg-surface1 py-2.5 pl-9 pr-8 text-[16px] text-ink outline-none transition-colors placeholder:text-mute focus:border-linestrong focus:bg-surface2 md:py-2 md:text-[13.5px]"
             />
             {search && (
               <button
@@ -323,7 +324,7 @@ export default function Sidebar({
           )}
         </nav>
 
-        <div className="flex items-center gap-2.5 border-t border-line px-3 py-2.5">
+        <div className="flex items-center gap-2.5 border-t border-line px-3 py-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
           <span
             className="grid h-[30px] w-[30px] shrink-0 place-items-center overflow-hidden rounded-full bg-avatar text-[11px] font-bold text-[#1a0e05] shadow-[0_0_0_2px_rgba(217,122,62,0.22)]"
             style={profile?.avatar ? { backgroundImage: `url(${profile.avatar})`, backgroundSize: "cover" } : undefined}
@@ -337,17 +338,10 @@ export default function Sidebar({
           </div>
           <button
             onClick={onOpenSettings}
-            className="grid h-8 w-8 place-items-center rounded-lg text-mute transition-colors hover:bg-surface1 hover:text-ink"
+            className="ml-auto grid h-9 w-9 place-items-center rounded-lg text-mute transition-colors hover:bg-surface1 hover:text-ink"
             aria-label="Open settings"
           >
             <SettingsIcon size={16} />
-          </button>
-          <button
-            onClick={onOpenSettings}
-            className="flex items-center gap-1.5 rounded-full border border-linestrong bg-surface3 px-3 py-1.5 text-[12.5px] font-semibold transition-all hover:-translate-y-px hover:border-[#4a4a4a] hover:bg-[#303030]"
-          >
-            <Sparkles size={13} className="text-accent" />
-            Upgrade
           </button>
         </div>
       </aside>

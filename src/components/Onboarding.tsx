@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Camera, ChevronLeft, ChevronRight, Code, Feather, GraduationCap, Microscope, Moon, PenTool, Rocket, Sparkles, Sun, Upload, X } from "lucide-react";
+import { ArrowRight, Camera, ChevronLeft, ChevronRight, Code, Feather, GraduationCap, Microscope, Moon, PenTool, Rocket, Sun, Upload, X } from "lucide-react";
+import Logo from "./Logo";
 import { downscaleImage, saveOnboardDraft, saveProfile } from "../lib/luca";
 import type { Profile } from "../lib/luca";
 
@@ -81,7 +82,7 @@ export default function Onboarding({ draft, onComplete }: Props) {
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className="grid h-[26px] w-[26px] place-items-center rounded-lg border border-linestrong bg-gradient-to-b from-surface2 to-surface1 text-accent">
-                <Sparkles size={14} />
+                <Logo size={15} />
               </span>
               <span className="font-display text-[17px] font-semibold">Luca</span>
             </div>
@@ -161,7 +162,7 @@ export default function Onboarding({ draft, onComplete }: Props) {
               placeholder="e.g. Alex"
               maxLength={40}
               autoFocus
-              className="w-full rounded-xl border border-linestrong bg-surface2 px-4 py-3 text-[15px] text-ink outline-none transition-all placeholder:text-mute/70 focus:border-accent focus:shadow-[0_0_0_4px_rgba(74,158,255,0.1)]"
+              className="w-full rounded-xl border border-linestrong bg-surface2 px-4 py-3 text-[16px] text-ink outline-none transition-colors placeholder:text-mute/70 md:text-[15px]"
             />
           </section>
 

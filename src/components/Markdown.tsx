@@ -192,7 +192,7 @@ function renderLines(text: string): string {
 export default function Markdown({ text }: { text: string }) {
   const blocks = parseBlocks(text);
   return (
-    <div className="text-[15px] leading-[1.68]">
+    <div className="text-[16px] leading-[1.68] md:text-[15px]">
       {blocks.map((b, i) =>
         b.type === "code" ? (
           <CodeBlock key={i} lang={b.lang || ""} code={b.content} />

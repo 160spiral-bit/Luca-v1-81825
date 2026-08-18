@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, FileText, Image as ImageIcon, Lightbulb, Mic, Paperclip, X, Zap } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, FileText, Image as ImageIcon, Lightbulb, Mic, Paperclip, Square, X, Zap } from "lucide-react";
 import { COMPOSER_MAX_LEN, MODELS, uid } from "../lib/luca";
 import type { Attachment, Settings, Tier } from "../lib/luca";
 
@@ -9,8 +9,6 @@ interface Props {
   onStop: () => void;
   tier: Tier;
   onTierChange: (t: Tier) => void;
-  think: boolean;
-  onThinkChange: (v: boolean) => void;
   settings: Settings;
   onToast: (msg: string) => void;
 }
@@ -21,8 +19,6 @@ export default function Composer({
   onStop,
   tier,
   onTierChange,
-  think,
-  onThinkChange,
   settings,
   onToast,
 }: Props) {
@@ -135,7 +131,7 @@ export default function Composer({
 
   return (
     <div
-      className={`mx-auto w-full max-w-[820px] px-3 pb-3.5 pt-1.5 sm:px-5 ${dragOver ? "" : ""}`}
+      className="mx-auto w-full max-w-[820px] px-3 pb-[max(14px,env(safe-area-inset-bottom))] pt-1.5 sm:px-5"
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -148,10 +144,8 @@ export default function Composer({
       }}
     >
       <div
-        className={`rounded-3xl border bg-surface4 p-1.5 pb-2 transition-all duration-200 ${
-          dragOver
-            ? "border-accent"
-            : "border-line focus-within:border-linestrong focus-within:shadow-[0_0_0_4px_rgba(74,158,255,0.07),0_10px_30px_rgba(0,0,0,0.35)]"
+        className={`rounded-3xl border bg-surface4 p-1.5 pb-2 transition-colors duration-200 ${
+          dragOver ? "border-accent" : "border-line"
         }`}
       >
         {attachments.length > 0 && (
@@ -197,15 +191,15 @@ export default function Composer({
             }
           }}
           rows={1}
-          placeholder={streaming ? "Luca is replying…" : "Ask anything"}
+          placeholder="Ask anything"
           aria-label="Message Luca"
-          className="block w-full resize-none border-none bg-transparent px-3 pb-1 pt-2 text-[15px] leading-relaxed text-ink outline-none placeholder:text-mute"
+          className="block w-full resize-none border-none bg-transparent px-3 pb-1 pt-2 text-[16px] leading-relaxed text-ink outline-none placeholder:text-mute md:text-[15px]"
         />
 
         <div className="flex items-center gap-1.5 px-1 pt-0.5">
           <button
             onClick={() => fileRef.current?.click()}
-            className="grid h-8 w-8 place-items-center rounded-full text-mute transition-all hover:bg-surface3 hover:text-ink active:scale-90"
+            className="grid h-9 w-9 place-items-center rounded-full text-mute transition-all hover:bg-surface3 hover:text-ink active:scale-90"
             aria-label="Attach files"
           >
             <Paperclip size={17} />
@@ -221,27 +215,12 @@ export default function Composer({
             }}
           />
 
-          <button
-            onClick={() => onThinkChange(!think)}
-            aria-pressed={think}
-            className={`flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
-              think
-                ? "border border-accent/40 bg-accent/10 text-accent"
-                : "text-mute hover:bg-surface3 hover:text-ink"
-            }`}
-            title="Extended thinking"
-          >
-            <Lightbulb size={14} />
-            Think
-            {think && <Check size={12} />}
-          </button>
-
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setModelMenu((v) => !v)}
               aria-haspopup="menu"
               aria-expanded={modelMenu}
-              className="flex h-[30px] items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-mute transition-colors hover:bg-surface3 hover:text-ink"
+              className="flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-mute transition-colors hover:bg-surface3 hover:text-ink"
             >
               <span id="modelMenuLabel">Luca {activeModel.label}</span>
               <ChevronDown size={13} className={`transition-transform duration-150 ${modelMenu ? "rotate-180" : ""}`} />
@@ -290,7 +269,7 @@ export default function Composer({
           <button
             onClick={toggleMic}
             aria-pressed={listening}
-            className={`grid h-8 w-8 place-items-center rounded-full transition-all active:scale-90 ${
+            className={`grid h-9 w-9 place-items-center rounded-full transition-all active:scale-90 ${
               listening ? "bg-danger/15 text-danger" : "text-mute hover:bg-surface3 hover:text-ink"
             }`}
             aria-label="Voice input"
@@ -302,30 +281,22 @@ export default function Composer({
             <button
               onClick={onStop}
               aria-label="Stop generating"
-              className="grid h-[34px] w-[34px] place-items-center rounded-full bg-surface3 text-ink transition-all hover:bg-linestrong active:scale-90"
+              className="grid h-9 w-9 place-items-center rounded-full bg-surface3 text-ink transition-all hover:bg-linestrong active:scale-90"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <rect x="5" y="5" width="14" height="14" rx="3" />
-              </svg>
+              <Square size={13} fill="currentColor" strokeWidth={0} />
             </button>
           ) : (
             <button
               onClick={doSend}
               disabled={!canSend}
               aria-label="Send message"
-              className={`grid h-[34px] w-[34px] place-items-center rounded-full transition-all ${
+              className={`grid h-9 w-9 place-items-center rounded-full transition-all ${
                 canSend
-                  ? "bg-accent2 text-white shadow-[0_2px_10px_rgba(90,169,255,0.28)] hover:bg-[#6db4ff] hover:shadow-[0_0_0_5px_rgba(90,169,255,0.14),0_4px_14px_rgba(90,169,255,0.35)] active:scale-90"
+                  ? "bg-accent2 text-white shadow-[0_2px_10px_rgba(90,169,255,0.28)] hover:bg-[#6db4ff] active:scale-90"
                   : "bg-surface3 text-mute"
               }`}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <rect x="3.2" y="9.4" width="2.4" height="5.2" rx="1.2" />
-                <rect x="7.6" y="6.6" width="2.4" height="10.8" rx="1.2" />
-                <rect x="12" y="4.2" width="2.4" height="15.6" rx="1.2" />
-                <rect x="16.4" y="7.8" width="2.4" height="8.4" rx="1.2" />
-                <rect x="20.8" y="10" width="2.4" height="4" rx="1.2" />
-              </svg>
+              <ArrowUp size={17} strokeWidth={2.5} />
             </button>
           )}
         </div>

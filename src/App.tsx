@@ -28,7 +28,7 @@ interface Toast {
   text: string;
 }
 
-type Mode = "checking" | "live" | "simulated";
+type Mode = "checking" | "live" | "offline";
 
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
@@ -38,7 +38,6 @@ export default function App() {
     return id && loadSessions().some((s) => s.id === id) ? id : null;
   });
   const [tier, setTier] = useState<Tier>(() => loadTier());
-  const [think, setThink] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const [mode, setMode] = useState<Mode>("checking");
   const [streaming, setStreaming] = useState<{ sessionId: string; msgUid: string } | null>(null);
@@ -78,7 +77,7 @@ export default function App() {
     let cancelled = false;
     const check = async () => {
       const ok = await healthCheck();
-      if (!cancelled) setMode(ok ? "live" : "simulated");
+      if (!cancelled) setMode(ok ? "live" : "offline");
     };
     check();
     const t = window.setInterval(check, 20000);
@@ -133,7 +132,6 @@ export default function App() {
       assistantUid: string,
       history: HistoryMsg[],
       userText: string,
-      doThink: boolean,
       currentTier: Tier,
       firstExchange: boolean,
     ) => {
@@ -148,18 +146,16 @@ export default function App() {
       let errorMsg: string | undefined;
 
       try {
-        const gen = streamChat({ tier: currentTier, history, think: doThink, settings, signal: controller.signal });
+        const gen = streamChat({ tier: currentTier, history, settings, signal: controller.signal });
         for await (const ev of gen as AsyncGenerator<EngineEvent>) {
           switch (ev.kind) {
-            case "mode":
-              setMode(ev.mode === "live" ? "live" : "simulated");
-              break;
             case "reasoning":
               reasoning += ev.text;
               patchMsg(sessionId, assistantUid, { reasoning });
               break;
             case "content":
               if (!firstContentAt) firstContentAt = Date.now();
+              if (!acc) setMode("live");
               acc += ev.text;
               patchMsg(sessionId, assistantUid, { content: acc });
               break;
@@ -168,10 +164,6 @@ export default function App() {
               break;
             case "tool-end":
               patchRound(sessionId, assistantUid, ev.roundId, { sources: ev.sources, status: "done", ms: ev.ms });
-              break;
-            case "error":
-              errorMsg = ev.message;
-              patchMsg(sessionId, assistantUid, { error: ev.message });
               break;
             case "done":
               break;
@@ -185,10 +177,11 @@ export default function App() {
         if (isAbortError(e)) {
           patchMsg(sessionId, assistantUid, { streaming: false, interrupted: true });
         } else {
-          patchMsg(sessionId, assistantUid, {
-            streaming: false,
-            error: e instanceof Error ? e.message : "Something went wrong while generating.",
-          });
+          const raw = e instanceof Error && e.message ? e.message : "Something went wrong while generating.";
+          const friendly = /failed to fetch|networkerror|load failed|typeerror/i.test(raw)
+            ? "Backend not reachable — start server.js (node server.js) and try again."
+            : raw;
+          patchMsg(sessionId, assistantUid, { streaming: false, error: friendly });
         }
       } finally {
         setStreaming(null);
@@ -258,9 +251,9 @@ export default function App() {
       );
 
       const history = [...buildHistory(baseMessages), { role: "user" as const, content: userMsg.content }];
-      void runStream(sid, assistantMsg.uid, history, text, think, tier, baseMessages.length === 0);
+      void runStream(sid, assistantMsg.uid, history, text, tier, baseMessages.length === 0);
     },
-    [activeId, activeSession, isStreaming, tier, think, runStream],
+    [activeId, activeSession, isStreaming, tier, runStream],
   );
 
   const stopGeneration = useCallback(() => {
@@ -293,9 +286,9 @@ export default function App() {
           s.id === sessionId ? { ...s, updatedAt: Date.now(), messages: [...before, assistantMsg] } : s,
         ),
       );
-      void runStream(sessionId, msgUid, history, lastUser.content, think, tier, false);
+      void runStream(sessionId, msgUid, history, lastUser.content, tier, false);
     },
-    [sessions, isStreaming, tier, think, runStream],
+    [sessions, isStreaming, tier, runStream],
   );
 
   const editAndResend = useCallback(
@@ -322,9 +315,9 @@ export default function App() {
         ),
       );
       const history = [...buildHistory(before), { role: "user" as const, content: text }];
-      void runStream(sessionId, assistantMsg.uid, history, text, think, tier, false);
+      void runStream(sessionId, assistantMsg.uid, history, text, tier, false);
     },
-    [sessions, isStreaming, tier, think, runStream],
+    [sessions, isStreaming, tier, runStream],
   );
 
   const newChat = useCallback(() => {
@@ -363,8 +356,8 @@ export default function App() {
     );
   }
 
-  const modeLabel = mode === "live" ? "Live backend" : mode === "simulated" ? "Local engine" : "Checking…";
-  const modeColor = mode === "live" ? "bg-ok" : mode === "simulated" ? "bg-warn" : "bg-mute";
+  const modeLabel = mode === "live" ? "Live backend" : mode === "offline" ? "Offline" : "Checking…";
+  const modeColor = mode === "live" ? "bg-ok" : mode === "offline" ? "bg-danger" : "bg-mute";
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-ink">
@@ -440,8 +433,6 @@ export default function App() {
           onStop={stopGeneration}
           tier={tier}
           onTierChange={setTier}
-          think={think}
-          onThinkChange={setThink}
           settings={settings}
           onToast={toast}
         />

@@ -84,7 +84,7 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
                 value={settings.backendUrl}
                 onChange={(e) => onChange({ backendUrl: e.target.value })}
                 placeholder="http://localhost:3000"
-                className="min-w-0 flex-1 rounded-lg border border-linestrong bg-surface2 px-3 py-2 font-mono text-[13px] text-ink outline-none placeholder:text-mute/70 focus:border-accent"
+                className="min-w-0 flex-1 rounded-lg border border-linestrong bg-surface2 px-3 py-2 font-mono text-[16px] text-ink outline-none placeholder:text-mute/70 focus:border-accent md:text-[13px]"
               />
               <span
                 className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-semibold ${
@@ -134,25 +134,7 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
             />
           </div>
 
-          <div className="mb-4 mt-4">
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.05em] text-mute">Simulated stream speed</div>
-            <div className="flex gap-2">
-              {[2, 3, 5, 8].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => onChange({ streamSpeed: v })}
-                  className={`flex-1 rounded-lg border px-2 py-1.5 font-mono text-[12.5px] transition-colors ${
-                    settings.streamSpeed === v ? "border-accent bg-accent/10 text-accent" : "border-line bg-surface2 text-mute hover:text-ink"
-                  }`}
-                >
-                  {v === 2 ? "Calm" : v === 3 ? "Normal" : v === 5 ? "Quick" : "Fast"}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1.5 text-xs text-mute">Used by the local engine when the backend is offline.</p>
-          </div>
-
-          <div className="mb-4 rounded-xl border border-line bg-surface2/60 px-4 py-2.5">
+          <div className="mb-4 mt-4 rounded-xl border border-line bg-surface2/60 px-4 py-2.5">
             <div className="mb-1 text-xs font-semibold uppercase tracking-[0.05em] text-mute">Personality</div>
             <Slider
               value={settings.personality.creativity}
@@ -181,7 +163,7 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
               onChange={(e) => onChange({ customPrompt: e.target.value })}
               rows={3}
               placeholder="Always answer concisely. Prefer TypeScript examples…"
-              className="w-full resize-none rounded-lg border border-linestrong bg-surface2 px-3 py-2 text-[13.5px] text-ink outline-none placeholder:text-mute/70 focus:border-accent"
+              className="w-full resize-none rounded-lg border border-linestrong bg-surface2 px-3 py-2 text-[16px] text-ink outline-none placeholder:text-mute/70 focus:border-accent md:text-[13.5px]"
             />
             <p className="mt-1.5 text-xs text-mute">Sent to the backend as <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">userSettings.customPrompt</code>.</p>
           </div>
