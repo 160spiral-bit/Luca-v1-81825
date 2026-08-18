@@ -93,23 +93,6 @@ export default function SettingsModal({ open, settings, onChange, onClose, onRes
         </div>
 
         <div className="px-5 py-4">
-          <div className="mb-5">
-            <label htmlFor="backend-url" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.05em] text-mute">
-              Backend URL
-            </label>
-            <input
-              id="backend-url"
-              value={settings.backendUrl}
-              onChange={(e) => onChange({ backendUrl: e.target.value })}
-              placeholder="http://localhost:3000"
-              className="w-full rounded-lg border border-linestrong bg-surface2 px-3 py-2.5 font-mono text-[16px] text-ink transition-colors duration-200 placeholder:text-mute/60 hover:border-[#484848] focus:border-linestrong focus:bg-surface3 md:text-[13px]"
-            />
-            <p className="mt-1.5 text-xs text-mute">
-              Stored in <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">luca-settings</code> — the same key the
-              original <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">getBackendUrl()</code> reads.
-            </p>
-          </div>
-
           <div className="mb-4">
             <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.05em] text-mute">Theme</div>
             <div className="flex gap-2">

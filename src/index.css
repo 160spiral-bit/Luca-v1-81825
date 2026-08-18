@@ -8,19 +8,19 @@
 
 :root {
   color-scheme: dark;
-  --color-canvas: #0a0a0a;
-  --color-surface1: #151515;
-  --color-surface2: #1d1d1d;
-  --color-surface3: #272727;
-  --color-surface4: #2e2e2e;
-  --color-line: #242424;
-  --color-linestrong: #373737;
-  --color-ink: #ededed;
-  --color-mute: #8b8b8b;
+  --color-canvas: #0d0d0f;
+  --color-surface1: #17171a;
+  --color-surface2: #202024;
+  --color-surface3: #2c2c31;
+  --color-surface4: #242429;
+  --color-line: #26262b;
+  --color-linestrong: #3d3d44;
+  --color-ink: #f1f1f3;
+  --color-mute: #a0a0ac;
   --color-accent: #6ba2ff;
   --color-accent2: #8ab5ff;
   --color-accent-ink: #08131f;
-  --color-avatar: #4d4d4d;
+  --color-avatar: #5a5a64;
   --color-danger: #e5655e;
   --color-ok: #6cbf8f;
   --color-warn: #c9a45c;
@@ -337,6 +337,86 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   background: var(--color-accent);
   animation: luca-pulse-dot 1.5s var(--ease-smooth) infinite;
+}
+
+/* ─────────────────────────────────────────────
+   AMBIENT LAYERS — depth for the dark canvas
+   ───────────────────────────────────────────── */
+
+/* slow-drifting sheen behind the chat column */
+@keyframes luca-drift-a {
+  from { transform: translate3d(-6%, -4%, 0) scale(1); }
+  to   { transform: translate3d(5%, 6%, 0) scale(1.15); }
+}
+@keyframes luca-drift-b {
+  from { transform: translate3d(4%, 5%, 0) scale(1.1); }
+  to   { transform: translate3d(-5%, -6%, 0) scale(1); }
+}
+
+.chat-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.55), transparent 55%),
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.05), transparent 60%),
+    var(--color-canvas);
+}
+.chat-ambient::before,
+.chat-ambient::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.chat-ambient::before {
+  width: 620px;
+  height: 420px;
+  left: -140px;
+  top: -160px;
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
+  animation: luca-drift-a 22s var(--ease-smooth) infinite alternate;
+}
+.chat-ambient::after {
+  width: 560px;
+  height: 460px;
+  right: -160px;
+  bottom: -180px;
+  background: rgba(255, 255, 255, 0.035);
+  animation: luca-drift-b 26s var(--ease-smooth) infinite alternate;
+}
+[data-theme="light"] .chat-ambient {
+  background:
+    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.06), transparent 55%),
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.65), transparent 60%),
+    var(--color-canvas);
+}
+[data-theme="light"] .chat-ambient::before {
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+[data-theme="light"] .chat-ambient::after {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* film grain over everything — keeps flat greys feeling tactile */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+[data-theme="light"] body::after,
+body[data-theme="light"]::after {
+  opacity: 0.03;
+}
+:root[data-theme="light"] body::after {
+  opacity: 0.03;
 }
 
 /* press feedback everywhere it matters */

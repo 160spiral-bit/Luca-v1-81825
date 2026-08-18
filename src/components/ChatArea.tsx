@@ -148,7 +148,7 @@ function AssistantRow({
 
   return (
     <div className="anim-msg group flex gap-3.5">
-      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border border-linestrong bg-gradient-to-b from-[#1e1e1e] to-[#151515] text-accent">
+      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border border-linestrong bg-gradient-to-b from-[#1d1d21] to-[#131316] text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
         <Logo size={16} />
       </span>
 

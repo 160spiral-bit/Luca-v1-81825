@@ -369,15 +369,9 @@ export default function App() {
         onCloseMobile={() => setMobileNav(false)}
       />
 
-      <div
-        className="relative flex min-w-0 flex-1 flex-col"
-        style={{
-          background:
-            "radial-gradient(880px 420px at 50% -140px, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 70%)," +
-            "radial-gradient(700px 500px at 88% 112%, color-mix(in srgb, var(--color-avatar) 4%, transparent), transparent 70%)," +
-            "var(--color-canvas)",
-        }}
-      >
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <div className="chat-ambient" aria-hidden="true" />
+
         <header className="relative z-20 flex h-[52px] shrink-0 items-center gap-1.5 border-b border-line bg-canvas/70 px-3.5 backdrop-blur-md">
           <button
             onClick={() => setMobileNav(true)}
