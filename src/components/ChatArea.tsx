@@ -278,7 +278,7 @@ function UserRow({
                   }
                 }}
                 disabled={!draft.trim() || streamingSomewhere}
-                className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-[#06131f] transition-opacity hover:bg-accent2 disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-canvas transition-opacity hover:bg-ink/85 disabled:opacity-40"
               >
                 <Check size={13} /> Save & send
               </button>

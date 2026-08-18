@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   LUCA AI — warm charcoal design system
-   No blue anywhere. Identity: ember amber on charcoal.
+   LUCA AI — monochrome design system
+   Black · white · grey — with a restrained steel-blue
+   accent reserved for cursor, active states and links.
    ───────────────────────────────────────────── */
 
 :root {
   color-scheme: dark;
-  --color-canvas: #0d0d0d;
-  --color-surface1: #1a1a1a;
-  --color-surface2: #212121;
-  --color-surface3: #2a2a2a;
-  --color-surface4: #2f2f2f;
-  --color-line: #2a2a2a;
-  --color-linestrong: #3a3a3a;
-  --color-ink: #ececec;
-  --color-mute: #8e8ea0;
-  --color-accent: #f0a75e;
-  --color-accent2: #f7bd82;
-  --color-accent-ink: #241305;
-  --color-avatar: #d97a3e;
-  --color-danger: #ff6b62;
-  --color-ok: #4cb985;
-  --color-warn: #e3b34f;
+  --color-canvas: #0a0a0a;
+  --color-surface1: #151515;
+  --color-surface2: #1d1d1d;
+  --color-surface3: #272727;
+  --color-surface4: #2e2e2e;
+  --color-line: #242424;
+  --color-linestrong: #373737;
+  --color-ink: #ededed;
+  --color-mute: #8b8b8b;
+  --color-accent: #6ba2ff;
+  --color-accent2: #8ab5ff;
+  --color-accent-ink: #08131f;
+  --color-avatar: #4d4d4d;
+  --color-danger: #e5655e;
+  --color-ok: #6cbf8f;
+  --color-warn: #c9a45c;
 
   --font-display: "Space Grotesk", "Instrument Sans", sans-serif;
   --font-body: "Instrument Sans", "Segoe UI", sans-serif;
@@ -36,22 +37,22 @@
 
 [data-theme="light"] {
   color-scheme: light;
-  --color-canvas: #f3f1ed;
-  --color-surface1: #eae7e2;
-  --color-surface2: #e2dfd9;
-  --color-surface3: #d6d2cc;
-  --color-surface4: #dcD8d2;
-  --color-line: #d8d4ce;
-  --color-linestrong: #c6c1ba;
-  --color-ink: #1c1b1a;
-  --color-mute: #6f6d68;
-  --color-accent: #d9832f;
-  --color-accent2: #c47326;
-  --color-accent-ink: #fff6ec;
-  --color-avatar: #d97a3e;
-  --color-danger: #d94f45;
-  --color-ok: #2f9e68;
-  --color-warn: #b98a1f;
+  --color-canvas: #f2f2f2;
+  --color-surface1: #e9e9e9;
+  --color-surface2: #e0e0e0;
+  --color-surface3: #d4d4d4;
+  --color-surface4: #dadada;
+  --color-line: #d9d9d9;
+  --color-linestrong: #c2c2c2;
+  --color-ink: #161616;
+  --color-mute: #6e6e6e;
+  --color-accent: #2f6fdd;
+  --color-accent2: #245cc0;
+  --color-accent-ink: #f4f8ff;
+  --color-avatar: #9c9c9c;
+  --color-danger: #cf4444;
+  --color-ok: #2f8f5b;
+  --color-warn: #a07d1e;
 }
 
 @theme inline {

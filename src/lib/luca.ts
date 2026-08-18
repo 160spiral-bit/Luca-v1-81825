@@ -222,6 +222,19 @@ export function loadOnboardDraft(): Profile | null {
   return null;
 }
 
+/* Wipe every persisted key — returns the app to first-run onboarding. */
+export function resetAll(): void {
+  try {
+    localStorage.removeItem(SETTINGS_KEY);
+    localStorage.removeItem(SESSIONS_KEY);
+    localStorage.removeItem(ACTIVE_KEY);
+    localStorage.removeItem(TIER_KEY);
+    localStorage.removeItem(ONBOARD_KEY);
+  } catch {
+    /* storage unavailable — nothing to clear */
+  }
+}
+
 export function saveOnboardDraft(d: Profile): void {
   try {
     localStorage.setItem(ONBOARD_KEY, JSON.stringify({ ...d, complete: false }));

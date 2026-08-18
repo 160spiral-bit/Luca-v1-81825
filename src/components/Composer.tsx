@@ -287,7 +287,7 @@ export default function Composer({
               aria-label="Send message"
               className={`grid h-9 w-9 place-items-center rounded-full transition-all duration-200 ${
                 canSend
-                  ? "bg-accent text-accent-ink shadow-[0_3px_14px_color-mix(in_srgb,var(--color-accent)_32%,transparent)] hover:bg-accent2 active:scale-90"
+                  ? "bg-ink text-canvas shadow-[0_3px_14px_rgba(0,0,0,0.4)] hover:bg-ink/85 active:scale-90"
                   : "bg-surface3 text-mute"
               }`}
             >

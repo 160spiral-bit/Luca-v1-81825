@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Moon, Sun, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Moon, RotateCcw, Sun, Trash2, X } from "lucide-react";
 import type { Settings } from "../lib/luca";
 
 interface Props {
@@ -7,6 +7,7 @@ interface Props {
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
   onClose: () => void;
+  onReset: () => void;
 }
 
 function Toggle({ checked, onToggle, label, hint }: { checked: boolean; onToggle: () => void; label: string; hint: string }) {
@@ -51,13 +52,20 @@ function Slider({ value, onChange, label }: { value: number; onChange: (v: numbe
   );
 }
 
-export default function SettingsModal({ open, settings, onChange, onClose }: Props) {
+export default function SettingsModal({ open, settings, onChange, onClose, onReset }: Props) {
+  const [confirmReset, setConfirmReset] = useState(false);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  /* reset the two-step confirmation whenever the modal reopens */
+  useEffect(() => {
+    if (open) setConfirmReset(false);
+  }, [open]);
 
   if (!open) return null;
 
@@ -176,6 +184,49 @@ export default function SettingsModal({ open, settings, onChange, onClose }: Pro
               Sent to the backend as <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">userSettings.customPrompt</code>.
             </p>
           </div>
+        </div>
+
+        {/* ── danger zone: full reset back to onboarding ── */}
+        <div className="border-t border-line px-5 py-4">
+          {confirmReset ? (
+            <div className="anim-scale-in rounded-xl border border-danger/40 bg-danger/[0.07] p-4">
+              <div className="flex items-start gap-2.5">
+                <Trash2 size={16} className="mt-0.5 shrink-0 text-danger" />
+                <div>
+                  <div className="text-sm font-semibold text-ink">Reset everything?</div>
+                  <p className="mt-0.5 text-xs leading-relaxed text-mute">
+                    This deletes all your chats, your profile, and every setting — then takes you back to onboarding. It can't be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={onReset}
+                  className="flex items-center gap-1.5 rounded-lg bg-danger px-3.5 py-2 text-xs font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-95"
+                >
+                  <Trash2 size={13} />
+                  Yes, reset everything
+                </button>
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="rounded-lg bg-surface3 px-3.5 py-2 text-xs font-medium text-ink transition-all duration-150 hover:bg-surface4 active:scale-95"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmReset(true)}
+              className="flex w-full items-center gap-2.5 rounded-xl border border-line px-4 py-3 text-left transition-all duration-200 hover:border-danger/50 hover:bg-danger/[0.05] active:scale-[0.99]"
+            >
+              <RotateCcw size={15} className="text-danger" />
+              <span className="flex-1">
+                <span className="block text-sm font-medium text-danger">Reset everything</span>
+                <span className="block text-xs text-mute">Clear chats, profile & settings — restart from onboarding</span>
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>

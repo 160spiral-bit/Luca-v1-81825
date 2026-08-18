@@ -295,7 +295,7 @@ export default function Onboarding({ onComplete }: { onComplete: (p: Profile) =>
                             <span className="flex flex-1 flex-col gap-1.5">
                               <span className="h-1.5 w-2/3 rounded-full" style={{ background: t === "dark" ? "#3a3a3a" : "#d4cfc6" }} />
                               <span className="h-1.5 w-full rounded-full" style={{ background: t === "dark" ? "#2a2a2a" : "#e0dcd4" }} />
-                              <span className="h-1.5 w-1/2 rounded-full" style={{ background: t === "dark" ? "#f0a75e" : "#d9832f" }} />
+                              <span className="h-1.5 w-1/2 rounded-full" style={{ background: t === "dark" ? "#6ba2ff" : "#2f6fdd" }} />
                               <span className="h-1.5 w-5/6 rounded-full" style={{ background: t === "dark" ? "#2a2a2a" : "#e0dcd4" }} />
                             </span>
                           </span>
@@ -320,7 +320,7 @@ export default function Onboarding({ onComplete }: { onComplete: (p: Profile) =>
                 {/* ready summary */}
                 <div className="anim-fade-up mt-7 flex items-center gap-3 rounded-2xl border border-line bg-surface1/70 px-4 py-3.5" style={{ ["--d" as string]: "220ms" }}>
                   <span
-                    className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-avatar text-[12px] font-bold text-[#1a0e05]"
+                    className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-avatar text-[12px] font-bold text-white"
                     style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: "cover" } : undefined}
                   >
                     {!avatar && (name.trim() ? name.trim().charAt(0).toUpperCase() : "?")}
@@ -371,7 +371,7 @@ export default function Onboarding({ onComplete }: { onComplete: (p: Profile) =>
             className={`group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[14px] font-semibold transition-all duration-200 active:scale-95 ${
               step === 1 && !name.trim()
                 ? "cursor-not-allowed bg-surface3 text-mute/60"
-                : "bg-accent text-accent-ink shadow-[0_6px_22px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] hover:bg-accent2"
+                : "bg-ink text-canvas shadow-[0_6px_22px_rgba(0,0,0,0.4)] hover:bg-ink/85"
             } ${step === 3 && step > 1 ? "" : step <= 1 ? "ml-auto" : ""}`}
           >
             {step === 3 ? "Enter Luca" : "Continue"}

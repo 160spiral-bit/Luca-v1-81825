@@ -14,6 +14,7 @@ import {
   loadSessions,
   loadSettings,
   loadTier,
+  resetAll,
   saveActiveId,
   saveSessions,
   saveSettings,
@@ -306,6 +307,20 @@ export default function App() {
     setSearch("");
   }, []);
 
+  /* full reset: abort anything running, wipe storage, drop back to onboarding */
+  const resetEverything = useCallback(() => {
+    abortRef.current?.abort();
+    resetAll();
+    setSessions([]);
+    setActiveId(null);
+    setSettingsOpen(false);
+    setMobileNav(false);
+    setSearch("");
+    setTier("pro");
+    document.documentElement.setAttribute("data-theme", "dark");
+    setProfile(null);
+  }, []);
+
   const deleteSession = useCallback(
     (id: string) => {
       if (streaming?.sessionId === id) abortRef.current?.abort();
@@ -413,6 +428,7 @@ export default function App() {
         settings={settings}
         onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
         onClose={() => setSettingsOpen(false)}
+        onReset={resetEverything}
       />
 
       {/* interstitial between onboarding and the app */}
