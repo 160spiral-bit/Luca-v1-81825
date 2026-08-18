@@ -1,0 +1,434 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   LUCA AI — monochrome design system
+   Black · white · grey — with a restrained steel-blue
+   accent reserved for cursor, active states and links.
+   ───────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+  --color-canvas: #0d0d0f;
+  --color-surface1: #17171a;
+  --color-surface2: #202024;
+  --color-surface3: #2c2c31;
+  --color-surface4: #242429;
+  --color-line: #26262b;
+  --color-linestrong: #3d3d44;
+  --color-ink: #f1f1f3;
+  --color-mute: #a0a0ac;
+  --color-accent: #6ba2ff;
+  --color-accent2: #8ab5ff;
+  --color-accent-ink: #08131f;
+  --color-avatar: #5a5a64;
+  --color-danger: #e5655e;
+  --color-ok: #6cbf8f;
+  --color-warn: #c9a45c;
+
+  --font-display: "Space Grotesk", "Instrument Sans", sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: #f2f2f2;
+  --color-surface1: #e9e9e9;
+  --color-surface2: #e0e0e0;
+  --color-surface3: #d4d4d4;
+  --color-surface4: #dadada;
+  --color-line: #d9d9d9;
+  --color-linestrong: #c2c2c2;
+  --color-ink: #161616;
+  --color-mute: #6e6e6e;
+  --color-accent: #2f6fdd;
+  --color-accent2: #245cc0;
+  --color-accent-ink: #f4f8ff;
+  --color-avatar: #9c9c9c;
+  --color-danger: #cf4444;
+  --color-ok: #2f8f5b;
+  --color-warn: #a07d1e;
+}
+
+@theme inline {
+  --color-canvas: var(--color-canvas);
+  --color-surface1: var(--color-surface1);
+  --color-surface2: var(--color-surface2);
+  --color-surface3: var(--color-surface3);
+  --color-surface4: var(--color-surface4);
+  --color-line: var(--color-line);
+  --color-linestrong: var(--color-linestrong);
+  --color-ink: var(--color-ink);
+  --color-mute: var(--color-mute);
+  --color-accent: var(--color-accent);
+  --color-accent2: var(--color-accent2);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-avatar: var(--color-avatar);
+  --color-danger: var(--color-danger);
+  --color-ok: var(--color-ok);
+  --color-warn: var(--color-warn);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 32%, transparent);
+}
+
+/* no browser focus halos — hover/active states carry the feedback */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: none;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface3) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-surface3);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-linestrong);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* range inputs (settings sliders) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--fill, 50%),
+    var(--color-surface3) var(--fill, 50%),
+    var(--color-surface3) 100%
+  );
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  border: 2.5px solid var(--color-accent);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-spring);
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  border: 2.5px solid var(--color-accent);
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────
+   MOTION LIBRARY
+   --d = per-element delay for staggers
+   ───────────────────────────────────────────── */
+
+@keyframes luca-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes luca-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes luca-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes luca-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes luca-pop-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes luca-step-fwd {
+  from {
+    opacity: 0;
+    transform: translateX(42px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes luca-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-42px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes luca-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes luca-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes luca-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+@keyframes luca-glow {
+  0%, 100% { opacity: 0.5; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes luca-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes luca-cursor {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+}
+@keyframes luca-shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes luca-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes luca-pulse-dot {
+  0%, 100% { opacity: 0.35; transform: scale(0.75); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes luca-drawer-in {
+  from { transform: translateX(-102%); }
+  to { transform: none; }
+}
+
+.anim-fade-up { animation: luca-fade-up 0.6s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+.anim-fade-in { animation: luca-fade-in 0.45s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+.anim-scale-in { animation: luca-scale-in 0.42s var(--ease-spring) both; animation-delay: var(--d, 0ms); }
+.anim-pop { transform-origin: top center; animation: luca-pop 0.22s var(--ease-spring) both; }
+.anim-pop-up { transform-origin: bottom center; animation: luca-pop-up 0.22s var(--ease-spring) both; }
+.anim-step-fwd { animation: luca-step-fwd 0.5s var(--ease-out) both; }
+.anim-step-back { animation: luca-step-back 0.5s var(--ease-out) both; }
+.anim-msg { animation: luca-msg-in 0.45s var(--ease-out) both; }
+.anim-toast { animation: luca-toast-in 0.4s var(--ease-spring) both; }
+.anim-breathe { animation: luca-breathe 2.6s var(--ease-smooth) infinite; }
+.anim-glow { animation: luca-glow 2.6s var(--ease-smooth) infinite; }
+.anim-spin { animation: luca-spin 0.9s linear infinite; }
+
+.typing-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--color-accent);
+  animation: luca-dot 1.15s var(--ease-smooth) infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+.stream-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 15px;
+  margin-left: 3px;
+  vertical-align: -2px;
+  border-radius: 2.5px;
+  background: var(--color-accent);
+  animation: luca-cursor 1.05s steps(1) infinite;
+}
+
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    var(--color-surface2) 40%,
+    var(--color-surface3) 50%,
+    var(--color-surface2) 60%
+  );
+  background-size: 200% 100%;
+  animation: luca-shimmer 1.6s linear infinite;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: luca-pulse-dot 1.5s var(--ease-smooth) infinite;
+}
+
+/* ─────────────────────────────────────────────
+   AMBIENT LAYERS — depth for the dark canvas
+   ───────────────────────────────────────────── */
+
+/* slow-drifting sheen behind the chat column */
+@keyframes luca-drift-a {
+  from { transform: translate3d(-6%, -4%, 0) scale(1); }
+  to   { transform: translate3d(5%, 6%, 0) scale(1.15); }
+}
+@keyframes luca-drift-b {
+  from { transform: translate3d(4%, 5%, 0) scale(1.1); }
+  to   { transform: translate3d(-5%, -6%, 0) scale(1); }
+}
+
+.chat-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* translucents only — never an opaque fill, or it buries the composer */
+  background:
+    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.5), transparent 55%),
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.05), transparent 60%);
+}
+.chat-ambient::before,
+.chat-ambient::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.chat-ambient::before {
+  width: 620px;
+  height: 420px;
+  left: -140px;
+  top: -160px;
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
+  animation: luca-drift-a 22s var(--ease-smooth) infinite alternate;
+}
+.chat-ambient::after {
+  width: 560px;
+  height: 460px;
+  right: -160px;
+  bottom: -180px;
+  background: rgba(255, 255, 255, 0.035);
+  animation: luca-drift-b 26s var(--ease-smooth) infinite alternate;
+}
+[data-theme="light"] .chat-ambient {
+  background:
+    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.06), transparent 55%),
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.65), transparent 60%);
+}
+[data-theme="light"] .chat-ambient::before {
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+[data-theme="light"] .chat-ambient::after {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* film grain over everything — keeps flat greys feeling tactile */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+[data-theme="light"] body::after,
+body[data-theme="light"]::after {
+  opacity: 0.03;
+}
+:root[data-theme="light"] body::after {
+  opacity: 0.03;
+}
+
+/* press feedback everywhere it matters */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
