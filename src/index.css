@@ -359,10 +359,10 @@ input[type="range"]::-moz-range-thumb {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  /* translucents only — never an opaque fill, or it buries the composer */
   background:
-    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.55), transparent 55%),
-    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.05), transparent 60%),
-    var(--color-canvas);
+    radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.5), transparent 55%),
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.05), transparent 60%);
 }
 .chat-ambient::before,
 .chat-ambient::after {
@@ -391,8 +391,7 @@ input[type="range"]::-moz-range-thumb {
 [data-theme="light"] .chat-ambient {
   background:
     radial-gradient(120% 90% at 50% 118%, rgba(0, 0, 0, 0.06), transparent 55%),
-    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.65), transparent 60%),
-    var(--color-canvas);
+    radial-gradient(90% 60% at 50% -18%, rgba(255, 255, 255, 0.65), transparent 60%);
 }
 [data-theme="light"] .chat-ambient::before {
   background: color-mix(in srgb, var(--color-accent) 6%, transparent);

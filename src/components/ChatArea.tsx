@@ -369,7 +369,7 @@ export default function ChatArea({ session, profile, settings, onSuggestion, onR
   const firstName = profile?.name && profile.name !== "User" ? profile.name.split(" ")[0] : null;
 
   return (
-    <div className="relative min-h-0 flex-1">
+    <div className="relative z-10 min-h-0 flex-1">
       <div ref={scrollRef} onScroll={onScroll} className="h-full overflow-y-auto">
         {isEmpty ? (
           <div className="mx-auto max-w-[780px] px-5 pt-[10vh]">

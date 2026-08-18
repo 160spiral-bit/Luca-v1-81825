@@ -131,7 +131,7 @@ export default function Composer({
 
   return (
     <div
-      className="mx-auto w-full max-w-[820px] px-3 pb-[max(14px,env(safe-area-inset-bottom))] pt-1.5 sm:px-5"
+      className="relative z-10 mx-auto w-full max-w-[820px] px-3 pb-[max(14px,env(safe-area-inset-bottom))] pt-1.5 sm:px-5"
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
