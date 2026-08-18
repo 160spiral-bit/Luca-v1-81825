@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu, Settings as SettingsIcon } from "lucide-react";
+import { Download, Menu, Settings as SettingsIcon } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import Composer from "./components/Composer";
 import Onboarding from "./components/Onboarding";
 import SettingsModal from "./components/SettingsModal";
+import SourceModal from "./components/SourceModal";
 import LoadingScreen from "./components/LoadingScreen";
 import { isAbortError, nameChat, streamChat } from "./lib/engine";
 import type { EngineEvent, HistoryMsg } from "./lib/engine";
@@ -42,6 +43,7 @@ export default function App() {
   const [streaming, setStreaming] = useState<{ sessionId: string; msgUid: string } | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -388,6 +390,16 @@ export default function App() {
           <div className="flex-1" />
 
           <button
+            onClick={() => setSourceOpen(true)}
+            className="group flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-mute transition-all duration-200 hover:bg-surface1 hover:text-ink active:scale-95"
+            aria-label="Download source code"
+            title="Download source code"
+          >
+            <Download size={15} className="transition-transform duration-200 group-hover:translate-y-0.5" />
+            <span className="hidden text-[13px] font-medium sm:inline">Source</span>
+          </button>
+
+          <button
             onClick={() => setSettingsOpen(true)}
             className="grid h-9 w-9 place-items-center rounded-lg text-mute transition-all duration-200 hover:bg-surface1 hover:text-ink active:scale-90"
             aria-label="Open settings"
@@ -424,6 +436,8 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         onReset={resetEverything}
       />
+
+      <SourceModal open={sourceOpen} onClose={() => setSourceOpen(false)} onToast={toast} />
 
       {/* interstitial between onboarding and the app */}
       {!ready && <LoadingScreen onDone={() => setReady(true)} />}

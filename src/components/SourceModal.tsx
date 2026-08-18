@@ -90,7 +90,7 @@ export default function SourceModal({ open, onClose, onToast }: { open: boolean;
             className="group flex w-full items-center gap-3 rounded-xl bg-ink px-4 py-3 text-left text-canvas transition-all duration-200 hover:bg-ink/85 active:scale-[0.99] disabled:opacity-60"
           >
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-canvas/10 transition-transform duration-200 group-hover:scale-105">
-              {zipping ? <span className="anim-spin inline-block"><Zip size={17} /></span> : <Zip size={17} />}
+              {zipping ? <span className="anim-spin inline-block"><Download size={17} /></span> : <Download size={17} />}
             </span>
             <span className="flex-1">
               <span className="block text-sm font-semibold">{zipping ? "Building archive…" : "Download luca-ai-ui.zip"}</span>
