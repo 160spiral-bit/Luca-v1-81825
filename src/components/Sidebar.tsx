@@ -196,7 +196,7 @@ export default function Sidebar({
                             }}
                             onBlur={commitRename}
                             aria-label="Rename chat"
-                            className="min-w-0 flex-1 rounded-md border border-linestrong bg-surface3 px-2 py-1 text-sm text-ink outline-none focus:border-accent"
+                            className="min-w-0 flex-1 rounded-md border border-linestrong bg-surface3 px-2 py-1 text-sm text-ink outline-none"
                           />
                           <button
                             className="grid h-7 w-7 place-items-center rounded-md text-ok hover:bg-surface3"

@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Settings as SettingsIcon } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import Composer from "./components/Composer";
 import Onboarding from "./components/Onboarding";
 import SettingsModal from "./components/SettingsModal";
-import { healthCheck, isAbortError, nameChat, streamChat } from "./lib/engine";
+import LoadingScreen from "./components/LoadingScreen";
+import { isAbortError, nameChat, streamChat } from "./lib/engine";
 import type { EngineEvent, HistoryMsg } from "./lib/engine";
 import {
   loadActiveId,
-  loadOnboardDraft,
   loadProfile,
   loadSessions,
   loadSettings,
@@ -28,8 +28,6 @@ interface Toast {
   text: string;
 }
 
-type Mode = "checking" | "live" | "offline";
-
 export default function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
   const [sessions, setSessions] = useState<Session[]>(() => loadSessions());
@@ -39,7 +37,7 @@ export default function App() {
   });
   const [tier, setTier] = useState<Tier>(() => loadTier());
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
-  const [mode, setMode] = useState<Mode>("checking");
+  const [ready, setReady] = useState(true);
   const [streaming, setStreaming] = useState<{ sessionId: string; msgUid: string } | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -71,21 +69,6 @@ export default function App() {
     saveSettings(settings);
     document.documentElement.setAttribute("data-theme", settings.theme);
   }, [settings]);
-
-  /* ---------- backend health ---------- */
-  useEffect(() => {
-    let cancelled = false;
-    const check = async () => {
-      const ok = await healthCheck();
-      if (!cancelled) setMode(ok ? "live" : "offline");
-    };
-    check();
-    const t = window.setInterval(check, 20000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(t);
-    };
-  }, [settings.backendUrl]);
 
   /* ---------- message patching ---------- */
   const patchMsg = useCallback((sessionId: string, msgUid: string, patch: Partial<LucaMessage>) => {
@@ -143,7 +126,6 @@ export default function App() {
       let reasoning = "";
       const startedAt = Date.now();
       let firstContentAt: number | null = null;
-      let errorMsg: string | undefined;
 
       try {
         const gen = streamChat({ tier: currentTier, history, settings, signal: controller.signal });
@@ -155,7 +137,6 @@ export default function App() {
               break;
             case "content":
               if (!firstContentAt) firstContentAt = Date.now();
-              if (!acc) setMode("live");
               acc += ev.text;
               patchMsg(sessionId, assistantUid, { content: acc });
               break;
@@ -189,7 +170,7 @@ export default function App() {
       }
 
       /* name the chat after its first exchange — real endpoint, local fallback */
-      if (!errorMsg && firstExchange) {
+      if (firstExchange) {
         const title = (await nameChat(userText, acc)) || titleFromMessage(userText);
         setSessions((cur) => cur.map((x) => (x.id === sessionId && x.title === "New chat" ? { ...x, title } : x)));
       }
@@ -343,21 +324,16 @@ export default function App() {
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title } : s)));
   }, []);
 
+  const onBoarded = useCallback((p: Profile) => {
+    setProfile(p);
+    setSettings((s) => ({ ...s, theme: p.theme }));
+    setReady(false); /* show the interstitial, then reveal the app */
+  }, []);
+
   /* ---------- onboarding ---------- */
   if (!profile) {
-    return (
-      <Onboarding
-        draft={loadOnboardDraft()}
-        onComplete={(p) => {
-          setProfile(p);
-          setSettings((s) => ({ ...s, theme: p.theme }));
-        }}
-      />
-    );
+    return <Onboarding onComplete={onBoarded} />;
   }
-
-  const modeLabel = mode === "live" ? "Live backend" : mode === "offline" ? "Offline" : "Checking…";
-  const modeColor = mode === "live" ? "bg-ok" : mode === "offline" ? "bg-danger" : "bg-mute";
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas text-ink">
@@ -382,13 +358,15 @@ export default function App() {
         className="relative flex min-w-0 flex-1 flex-col"
         style={{
           background:
-            "radial-gradient(900px 420px at 50% -140px, rgba(74,158,255,0.055), transparent 70%), radial-gradient(700px 500px at 85% 110%, rgba(74,158,255,0.028), transparent 70%), var(--color-canvas)",
+            "radial-gradient(880px 420px at 50% -140px, color-mix(in srgb, var(--color-accent) 5%, transparent), transparent 70%)," +
+            "radial-gradient(700px 500px at 88% 112%, color-mix(in srgb, var(--color-avatar) 4%, transparent), transparent 70%)," +
+            "var(--color-canvas)",
         }}
       >
         <header className="relative z-20 flex h-[52px] shrink-0 items-center gap-1.5 border-b border-line bg-canvas/70 px-3.5 backdrop-blur-md">
           <button
             onClick={() => setMobileNav(true)}
-            className="grid h-8 w-8 place-items-center rounded-lg text-mute hover:bg-surface1 hover:text-ink md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-lg text-mute transition-all duration-200 hover:bg-surface1 hover:text-ink active:scale-90 md:hidden"
             aria-label="Open sidebar"
           >
             <Menu size={17} />
@@ -402,18 +380,10 @@ export default function App() {
 
           <button
             onClick={() => setSettingsOpen(true)}
-            title="Backend status — click to configure"
-            className="mr-1 flex max-w-[200px] items-center gap-2 rounded-full border border-line bg-surface1 px-3 py-1 text-[11.5px] font-semibold text-mute transition-colors hover:border-linestrong hover:text-ink"
+            className="grid h-9 w-9 place-items-center rounded-lg text-mute transition-all duration-200 hover:bg-surface1 hover:text-ink active:scale-90"
+            aria-label="Open settings"
           >
-            <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${modeColor} ${mode === "live" ? "animate-pulse" : ""}`} />
-            <span className="truncate">{modeLabel}</span>
-          </button>
-
-          <button
-            onClick={newChat}
-            className="hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium text-mute transition-colors hover:bg-surface1 hover:text-ink sm:flex"
-          >
-            New chat
+            <SettingsIcon size={16} />
           </button>
         </header>
 
@@ -441,10 +411,12 @@ export default function App() {
       <SettingsModal
         open={settingsOpen}
         settings={settings}
-        backendLive={mode === "live"}
         onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {/* interstitial between onboarding and the app */}
+      {!ready && <LoadingScreen onDone={() => setReady(true)} />}
 
       {/* toasts */}
       <div className="pointer-events-none fixed bottom-5 left-5 z-[70] flex flex-col gap-2">

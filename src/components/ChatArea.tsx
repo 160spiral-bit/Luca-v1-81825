@@ -68,7 +68,7 @@ function ThinkingBlock({ msg }: { msg: LucaMessage }) {
         )}
       </button>
       {open && msg.reasoning && (
-        <div className="anim-rise mt-1.5 whitespace-pre-wrap border-l-2 border-accent/30 pl-3.5 text-[13.5px] leading-relaxed text-mute">
+        <div className="anim-fade-in mt-1.5 whitespace-pre-wrap border-l-2 border-accent/30 pl-3.5 text-[13.5px] leading-relaxed text-mute">
           {msg.reasoning}
         </div>
       )}
@@ -108,7 +108,7 @@ function ToolRoundView({ round }: { round: ToolRound }) {
         )}
       </div>
       {open && round.sources.length > 0 && (
-        <div className="anim-rise mt-2.5 flex flex-wrap gap-2">
+        <div className="anim-fade-in mt-2.5 flex flex-wrap gap-2">
           {round.sources.map((s, i) => (
             <a
               key={i}
@@ -147,7 +147,7 @@ function AssistantRow({
   const isLastAssistant = [...session.messages].reverse().find((m) => m.role === "assistant")?.uid === msg.uid;
 
   return (
-    <div className="anim-rise group flex gap-3.5">
+    <div className="anim-msg group flex gap-3.5">
       <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-[9px] border border-linestrong bg-gradient-to-b from-[#1e1e1e] to-[#151515] text-accent">
         <Logo size={16} />
       </span>
@@ -242,10 +242,10 @@ function UserRow({
   const [copied, setCopied] = useState(false);
 
   return (
-    <div className="anim-rise group flex justify-end">
+    <div className="anim-msg group flex justify-end">
       <div className="max-w-[86%] sm:max-w-[72%]">
         {editing ? (
-          <div className="rounded-2xl border border-accent/50 bg-surface2 p-2 shadow-[0_0_0_4px_rgba(74,158,255,0.08)]">
+          <div className="rounded-2xl border border-accent/50 bg-surface2 p-2 shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-accent)_9%,transparent)]">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -373,11 +373,11 @@ export default function ChatArea({ session, profile, settings, onSuggestion, onR
       <div ref={scrollRef} onScroll={onScroll} className="h-full overflow-y-auto">
         {isEmpty ? (
           <div className="mx-auto max-w-[780px] px-5 pt-[10vh]">
-            <h2 className="anim-rise font-display text-[clamp(24px,3.4vw,32px)] font-semibold leading-tight tracking-tight">
+            <h2 className="anim-fade-up font-display text-[clamp(24px,3.4vw,32px)] font-semibold leading-tight tracking-tight">
               {greeting}
               {firstName ? `, ${firstName}` : ""}
             </h2>
-            <p className="anim-rise mt-2 text-[15px] text-mute" style={{ animationDelay: "60ms" }}>
+            <p className="anim-fade-up mt-2 text-[15px] text-mute" style={{ ["--d" as string]: "70ms" }}>
               Where should we start?
             </p>
             <div className="mt-7 grid gap-2.5 sm:grid-cols-2">
@@ -385,8 +385,8 @@ export default function ChatArea({ session, profile, settings, onSuggestion, onR
                 <button
                   key={s}
                   onClick={() => onSuggestion(s)}
-                  className="anim-rise rounded-xl border border-line bg-surface1 px-4 py-3 text-left text-[13.5px] leading-snug transition-all duration-150 hover:-translate-y-0.5 hover:border-linestrong hover:bg-surface2"
-                  style={{ animationDelay: `${120 + i * 60}ms` }}
+                  className="anim-fade-up rounded-xl border border-line bg-surface1 px-4 py-3 text-left text-[13.5px] leading-snug transition-all duration-200 hover:-translate-y-0.5 hover:border-linestrong hover:bg-surface2 active:scale-[0.98]"
+                  style={{ ["--d" as string]: `${140 + i * 60}ms` }}
                 >
                   {s}
                 </button>

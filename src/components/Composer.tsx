@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Check, ChevronDown, FileText, Image as ImageIcon, Lightbulb, Mic, Paperclip, Square, X, Zap } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, FileText, Image as ImageIcon, Mic, Paperclip, Square, X } from "lucide-react";
 import { COMPOSER_MAX_LEN, MODELS, uid } from "../lib/luca";
 import type { Attachment, Settings, Tier } from "../lib/luca";
 
@@ -228,9 +228,12 @@ export default function Composer({
 
             {modelMenu && (
               <div
-                className="anim-pop absolute bottom-10 left-0 z-50 w-[230px] rounded-xl border border-linestrong bg-surface2 p-1 shadow-[0_14px_38px_rgba(0,0,0,0.55)]"
+                className="anim-pop-up absolute bottom-11 left-0 z-50 w-[148px] rounded-xl border border-linestrong bg-surface2 p-1 shadow-[0_14px_38px_rgba(0,0,0,0.55)]"
                 role="menu"
               >
+                <div className="px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-mute/80">
+                  Model
+                </div>
                 {MODELS.map((m) => (
                   <button
                     key={m.id}
@@ -240,20 +243,12 @@ export default function Composer({
                       onTierChange(m.tier);
                       setModelMenu(false);
                     }}
-                    className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-surface3 ${
-                      m.tier === tier ? "bg-surface3/60" : ""
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-[7px] text-left text-[13px] font-medium transition-all duration-150 hover:bg-surface3 active:scale-[0.98] ${
+                      m.tier === tier ? "text-ink" : "text-mute"
                     }`}
                   >
-                    <span className={`mt-0.5 ${m.tier === "flash" ? "text-warn" : "text-accent"}`}>
-                      {m.tier === "flash" ? <Zap size={15} /> : <Lightbulb size={15} />}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="flex items-center gap-2 text-[13.5px] font-semibold">
-                        Luca {m.label}
-                        {m.tier === tier && <Check size={13} className="text-accent" />}
-                      </span>
-                      <span className="block text-xs leading-snug text-mute">{m.desc}</span>
-                    </span>
+                    Luca {m.label}
+                    {m.tier === tier && <Check size={13} className="anim-scale-in text-accent" />}
                   </button>
                 ))}
               </div>
@@ -263,7 +258,7 @@ export default function Composer({
           <div className="flex-1" />
 
           {nearLimit && (
-            <span className="text-[11.5px] text-warn">{text.length.toLocaleString()} / {COMPOSER_MAX_LEN.toLocaleString()}</span>
+            <span className="text-[11.5px] text-danger">{text.length.toLocaleString()} / {COMPOSER_MAX_LEN.toLocaleString()}</span>
           )}
 
           <button
@@ -290,9 +285,9 @@ export default function Composer({
               onClick={doSend}
               disabled={!canSend}
               aria-label="Send message"
-              className={`grid h-9 w-9 place-items-center rounded-full transition-all ${
+              className={`grid h-9 w-9 place-items-center rounded-full transition-all duration-200 ${
                 canSend
-                  ? "bg-accent2 text-white shadow-[0_2px_10px_rgba(90,169,255,0.28)] hover:bg-[#6db4ff] active:scale-90"
+                  ? "bg-accent text-accent-ink shadow-[0_3px_14px_color-mix(in_srgb,var(--color-accent)_32%,transparent)] hover:bg-accent2 active:scale-90"
                   : "bg-surface3 text-mute"
               }`}
             >

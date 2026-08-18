@@ -1,7 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Camera, ChevronLeft, ChevronRight, Code, Feather, GraduationCap, Microscope, Moon, PenTool, Rocket, Sun, Upload, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  Code,
+  Feather,
+  GraduationCap,
+  Microscope,
+  PenTool,
+  Rocket,
+  Upload,
+  X,
+} from "lucide-react";
 import Logo from "./Logo";
-import { downscaleImage, saveOnboardDraft, saveProfile } from "../lib/luca";
+import { downscaleImage, loadOnboardDraft, saveOnboardDraft, saveProfile } from "../lib/luca";
 import type { Profile } from "../lib/luca";
 
 const PERSONAS = [
@@ -11,58 +24,63 @@ const PERSONAS = [
   { id: "writer", label: "Writer", icon: Feather },
   { id: "researcher", label: "Researcher", icon: Microscope },
   { id: "founder", label: "Founder", icon: Rocket },
+] as const;
+
+const STEP_META = [
+  { n: "01", label: "You" },
+  { n: "02", label: "Work" },
+  { n: "03", label: "Canvas" },
 ];
 
-const STEP_LABELS: Record<number, string> = { 1: "Welcome", 2: "Persona", 3: "Look & feel" };
-
-interface Props {
-  draft: Profile | null;
-  onComplete: (p: Profile) => void;
-}
-
-export default function Onboarding({ draft, onComplete }: Props) {
-  const [step, setStep] = useState(draft?.step && draft.step >= 1 && draft.step <= 3 ? draft.step : 1);
-  const [name, setName] = useState(draft?.name || "");
-  const [persona, setPersona] = useState<string | null>(draft?.persona || null);
-  const [theme, setTheme] = useState<"dark" | "light">(draft?.theme === "light" ? "light" : "dark");
-  const [avatar, setAvatar] = useState<string | null>(draft?.avatar || null);
+export default function Onboarding({ onComplete }: { onComplete: (p: Profile) => void }) {
+  const draft = useRef(loadOnboardDraft());
+  const [step, setStep] = useState(() => Math.min(3, Math.max(1, draft.current?.step || 1)));
+  const [dir, setDir] = useState<"fwd" | "back">("fwd");
+  const [name, setName] = useState(draft.current?.name || "");
+  const [persona, setPersona] = useState<string | null>(draft.current?.persona || null);
+  const [theme, setTheme] = useState<"dark" | "light">(draft.current?.theme || "dark");
+  const [avatar, setAvatar] = useState<string | null>(draft.current?.avatar || null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  /* apply theme live, same as the original wizard */
+  /* live theme preview + draft persistence */
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  /* auto-save the in-progress draft (complete:false) on every change */
   useEffect(() => {
     saveOnboardDraft({ name, persona, theme, avatar, step, complete: false });
   }, [name, persona, theme, avatar, step]);
 
   const go = (next: number) => {
-    if (next < 1 || next > 3) return;
+    setDir(next > step ? "fwd" : "back");
     setStep(next);
   };
 
   const finish = () => {
-    const payload: Profile = {
+    const profile: Profile = {
       name: name.trim() || "User",
       persona,
       theme,
       avatar,
-      completedAt: Date.now(),
       complete: true,
+      completedAt: Date.now(),
     };
-    saveProfile(payload);
-    onComplete(payload);
+    saveProfile(profile);
+    onComplete(profile);
   };
 
-  const pickAvatar = (file: File | undefined) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 4 * 1024 * 1024) return;
+  const next = () => {
+    if (step === 1 && !name.trim()) return;
+    if (step < 3) go(step + 1);
+    else finish();
+  };
+
+  const onFile = async (file: File | undefined) => {
+    if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      downscaleImage(String(reader.result), 160).then(setAvatar);
+    reader.onload = async () => {
+      const scaled = await downscaleImage(String(reader.result), 256);
+      setAvatar(scaled);
     };
     reader.readAsDataURL(file);
   };
@@ -70,206 +88,294 @@ export default function Onboarding({ draft, onComplete }: Props) {
   const personaLabel = PERSONAS.find((p) => p.id === persona)?.label || null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto px-4 py-8"
-      style={{
-        background:
-          "radial-gradient(1000px 520px at 50% -160px, rgba(74,158,255,0.07), transparent 70%), radial-gradient(760px 520px at 88% 112%, rgba(217,122,62,0.05), transparent 70%), var(--color-canvas)",
-      }}
-    >
-      <div className="anim-rise w-full max-w-[660px] overflow-hidden rounded-[20px] border border-line bg-[#161616] shadow-[0_30px_80px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.03)]">
-        <header className="px-7 pt-5">
-          <div className="mb-5 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="grid h-[26px] w-[26px] place-items-center rounded-lg border border-linestrong bg-gradient-to-b from-surface2 to-surface1 text-accent">
-                <Logo size={15} />
-              </span>
-              <span className="font-display text-[17px] font-semibold">Luca</span>
-            </div>
-            <div className="flex items-baseline gap-2.5">
-              <span className="font-mono text-xs text-mute">
-                <span className="font-medium text-accent">{step}</span> / 3
-              </span>
-              <span className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-mute">
-                {STEP_LABELS[step]}
-              </span>
-            </div>
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-canvas">
+      {/* layered ember ambience */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(900px 480px at 18% -12%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 70%)," +
+            "radial-gradient(760px 520px at 92% 112%, color-mix(in srgb, var(--color-avatar) 7%, transparent), transparent 70%)," +
+            "radial-gradient(1200px 700px at 50% 120%, rgba(0,0,0,0.5), transparent 75%)",
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto flex h-full w-full max-w-[640px] flex-col px-6 sm:px-8">
+        {/* header */}
+        <header className="anim-fade-in flex items-center justify-between pt-6 sm:pt-8">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-[30px] w-[30px] place-items-center rounded-[10px] border border-linestrong bg-gradient-to-b from-surface2 to-surface1 text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <Logo size={17} />
+            </span>
+            <span className="font-display text-lg font-semibold tracking-tight">Luca</span>
           </div>
-          <div className="h-[3px] overflow-hidden rounded-full bg-surface3">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-accent to-accent2 transition-[width] duration-500 ease-out"
-              style={{ width: `${(step / 3) * 100}%` }}
-            />
-          </div>
+          <span className="font-mono text-[11.5px] tracking-[0.14em] text-mute">
+            {STEP_META[step - 1].n} <span className="text-linestrong">/</span> 03
+          </span>
         </header>
 
-        <div className="relative min-h-[330px] px-7 pb-3 pt-7">
-          {/* Step 1 — Welcome */}
-          <section
-            className={`absolute inset-x-7 bottom-3 top-7 transition-all duration-300 ease-out ${
-              step === 1 ? "translate-x-0 opacity-100" : step > 1 ? "pointer-events-none -translate-x-7 opacity-0" : "pointer-events-none translate-x-7 opacity-0"
-            }`}
-          >
-            <h2 className="font-display text-2xl font-semibold leading-snug tracking-tight">
-              First things first — what should we call you?
-            </h2>
-            <p className="mb-6 mt-2 text-sm text-mute">This is how Luca greets you. You can skip it and add a name later.</p>
-
-            <div className="mb-6 flex items-center gap-4">
-              <button
-                onClick={() => fileRef.current?.click()}
-                aria-label="Choose a profile photo"
-                className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border-[1.5px] border-dashed border-avatar/55 bg-avatar/15 text-avatar transition-all hover:scale-105 hover:border-avatar hover:bg-avatar/20"
-              >
-                {avatar ? (
-                  <img src={avatar} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <Camera size={20} />
-                )}
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => pickAvatar(e.target.files?.[0])} />
-              <div className="flex flex-col items-start gap-1.5">
+        {/* stepper */}
+        <div className="anim-fade-up mt-7" style={{ ["--d" as string]: "60ms" }}>
+          <div className="flex items-center gap-2">
+            {STEP_META.map((s, i) => {
+              const state = i + 1 < step ? "done" : i + 1 === step ? "active" : "todo";
+              return (
                 <button
-                  onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium text-mute transition-colors hover:bg-surface3 hover:text-ink"
-                >
-                  <Upload size={14} /> Upload photo
-                </button>
-                {avatar && (
-                  <button
-                    onClick={() => setAvatar(null)}
-                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13.5px] font-medium text-mute transition-colors hover:bg-surface3 hover:text-danger"
-                  >
-                    <X size={14} /> Remove
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <label htmlFor="ob-name" className="mb-2 block text-xs font-semibold uppercase tracking-[0.05em] text-mute">
-              Your name
-            </label>
-            <input
-              id="ob-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  go(2);
-                }
-              }}
-              placeholder="e.g. Alex"
-              maxLength={40}
-              autoFocus
-              className="w-full rounded-xl border border-linestrong bg-surface2 px-4 py-3 text-[16px] text-ink outline-none transition-colors placeholder:text-mute/70 md:text-[15px]"
-            />
-          </section>
-
-          {/* Step 2 — Persona */}
-          <section
-            className={`absolute inset-x-7 bottom-3 top-7 transition-all duration-300 ease-out ${
-              step === 2 ? "translate-x-0 opacity-100" : step > 2 ? "pointer-events-none -translate-x-7 opacity-0" : "pointer-events-none translate-x-7 opacity-0"
-            }`}
-          >
-            <h2 className="font-display text-2xl font-semibold leading-snug tracking-tight">What kind of work do you do?</h2>
-            <p className="mb-6 mt-2 text-sm text-mute">Luca tunes its tone and defaults to match. Nothing here locks you in.</p>
-
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup" aria-label="Persona">
-              {PERSONAS.map((p) => {
-                const Icon = p.icon;
-                const selected = persona === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => setPersona(selected ? null : p.id)}
-                    className={`flex flex-col items-center gap-2.5 rounded-xl border px-3 py-[17px] text-[13.5px] font-medium transition-all duration-150 ${
-                      selected
-                        ? "border-accent bg-accent/10 text-ink shadow-[0_0_0_3px_rgba(74,158,255,0.12)]"
-                        : "border-line bg-surface2 text-mute hover:-translate-y-0.5 hover:bg-[#262626] hover:text-ink"
-                    }`}
-                  >
-                    <Icon size={19} className={selected ? "text-accent" : ""} />
-                    {p.label}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Step 3 — Look & feel */}
-          <section
-            className={`absolute inset-x-7 bottom-3 top-7 transition-all duration-300 ease-out ${
-              step === 3 ? "translate-x-0 opacity-100" : "pointer-events-none translate-x-7 opacity-0"
-            }`}
-          >
-            <h2 className="font-display text-2xl font-semibold leading-snug tracking-tight">Make it yours</h2>
-            <p className="mb-6 mt-2 text-sm text-mute">The theme applies immediately — and here's your profile card.</p>
-
-            <div className="mb-6 flex gap-2.5" role="radiogroup" aria-label="Theme">
-              {(["dark", "light"] as const).map((t) => (
-                <button
-                  key={t}
-                  role="radio"
-                  aria-checked={theme === t}
-                  onClick={() => setTheme(t)}
-                  className={`flex flex-1 items-center justify-center gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
-                    theme === t
-                      ? "border-accent bg-accent/10 text-ink"
-                      : "border-line bg-surface2 text-mute hover:bg-[#262626] hover:text-ink"
+                  key={s.n}
+                  onClick={() => i + 1 < step && go(i + 1)}
+                  disabled={i + 1 >= step}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-[5px] text-[12px] font-semibold transition-all duration-300 ${
+                    state === "active"
+                      ? "border-accent/60 bg-accent/10 text-accent"
+                      : state === "done"
+                        ? "border-line text-mute hover:border-linestrong hover:text-ink"
+                        : "border-line/60 text-mute/60"
                   }`}
                 >
-                  {t === "dark" ? <Moon size={16} className={theme === t ? "text-accent" : ""} /> : <Sun size={16} className={theme === t ? "text-accent" : ""} />}
-                  {t === "dark" ? "Dark" : "Light"}
+                  {state === "done" ? <Check size={12} className="text-accent" /> : <span className="font-mono text-[10px]">{s.n}</span>}
+                  {s.label}
                 </button>
-              ))}
+              );
+            })}
+            <div className="relative ml-1 h-[3px] flex-1 overflow-hidden rounded-full bg-surface3">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${(step / 3) * 100}%`,
+                  background: "linear-gradient(90deg, var(--color-accent), var(--color-accent2))",
+                  transitionTimingFunction: "var(--ease-spring)",
+                }}
+              />
             </div>
-
-            <div className="flex items-center gap-3.5 rounded-[18px] border border-linestrong bg-surface2 px-4 py-3.5">
-              <span
-                className="grid h-[46px] w-[46px] shrink-0 place-items-center overflow-hidden rounded-full bg-avatar text-[17px] font-bold text-[#1a0e05] shadow-[0_0_0_3px_rgba(217,122,62,0.2)]"
-                style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: "cover" } : undefined}
-              >
-                {!avatar && (name.trim() ? name.trim().charAt(0).toUpperCase() : "?")}
-              </span>
-              <div className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-semibold">{name.trim() || "Your Name"}</span>
-                <span className="mt-px block text-[12.5px] text-mute">{personaLabel || "No role selected"}</span>
-              </div>
-              <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-surface3 px-3 py-1.5 text-xs font-semibold text-mute">
-                {theme === "dark" ? <Moon size={13} className="text-accent" /> : <Sun size={13} className="text-accent" />}
-                {theme === "dark" ? "Dark" : "Light"}
-              </span>
-            </div>
-          </section>
+          </div>
         </div>
 
-        <footer className="flex items-center gap-2 border-t border-line bg-canvas/40 px-7 py-4">
+        {/* step body */}
+        <main className="grid min-h-0 flex-1 content-center overflow-y-auto py-7">
+          <div key={step} className={dir === "fwd" ? "anim-step-fwd" : "anim-step-back"}>
+            {step === 1 && (
+              <>
+                <h1 className="font-display text-[clamp(30px,6vw,42px)] font-semibold leading-[1.08] tracking-tight">
+                  Hey — I'm Luca.
+                  <br />
+                  <span className="text-mute">Let's get acquainted.</span>
+                </h1>
+                <p className="mt-3.5 max-w-[46ch] text-[15px] leading-relaxed text-mute">
+                  First things first: what should I call you? This is how I'll greet you from now on.
+                </p>
+
+                <div className="mt-9 flex items-center gap-5">
+                  <button
+                    onClick={() => (avatar ? setAvatar(null) : fileRef.current?.click())}
+                    className="group relative grid h-[72px] w-[72px] shrink-0 place-items-center overflow-hidden rounded-full transition-transform duration-300 hover:scale-[1.04] active:scale-95"
+                    style={{
+                      background: avatar ? undefined : "color-mix(in srgb, var(--color-avatar) 14%, transparent)",
+                      border: avatar ? "2px solid var(--color-linestrong)" : "1.5px dashed color-mix(in srgb, var(--color-avatar) 60%, transparent)",
+                    }}
+                    aria-label={avatar ? "Remove photo" : "Add a profile photo"}
+                  >
+                    {avatar ? (
+                      <img src={avatar} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Camera size={24} className="text-avatar transition-transform duration-300 group-hover:scale-110" />
+                    )}
+                    {avatar && (
+                      <span className="absolute inset-0 grid place-items-center bg-black/55 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <X size={20} className="text-white" />
+                      </span>
+                    )}
+                  </button>
+                  <input type="file" ref={fileRef} accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+
+                  <div className="min-w-0 flex-1">
+                    <label htmlFor="ob-name" className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.08em] text-mute">
+                      Your name
+                    </label>
+                    <input
+                      id="ob-name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && next()}
+                      placeholder="e.g. Harper"
+                      maxLength={40}
+                      autoFocus
+                      autoComplete="off"
+                      className="w-full rounded-xl border border-linestrong bg-surface2 px-4 py-3 text-[16px] text-ink transition-colors duration-200 placeholder:text-mute/60 hover:border-[#484848] focus:border-linestrong focus:bg-surface3 md:text-[15px]"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <h1 className="font-display text-[clamp(30px,6vw,42px)] font-semibold leading-[1.08] tracking-tight">
+                  What kind of work
+                  <br />
+                  <span className="text-mute">do you do?</span>
+                </h1>
+                <p className="mt-3.5 max-w-[48ch] text-[15px] leading-relaxed text-mute">
+                  I'll tune my tone and defaults to match — code-heavy, study-friendly, or something else. Nothing locks you in.
+                </p>
+
+                <div className="mt-9 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {PERSONAS.map((p, i) => {
+                    const Icon = p.icon;
+                    const selected = persona === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => setPersona(p.id)}
+                        className={`anim-fade-up group relative flex flex-col items-center gap-2.5 rounded-2xl border px-3 py-5 transition-all duration-200 ${
+                          selected
+                            ? "border-accent/70 bg-accent/[0.09] shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_14%,transparent)]"
+                            : "border-line bg-surface1/60 hover:-translate-y-1 hover:border-linestrong hover:bg-surface2"
+                        }`}
+                        style={{ ["--d" as string]: `${90 + i * 45}ms` }}
+                        aria-pressed={selected}
+                      >
+                        <Icon
+                          size={20}
+                          className={`transition-colors duration-200 ${selected ? "text-accent" : "text-mute group-hover:text-ink"}`}
+                        />
+                        <span className={`text-[13.5px] font-semibold ${selected ? "text-ink" : "text-mute group-hover:text-ink"}`}>
+                          {p.label}
+                        </span>
+                        {selected && (
+                          <span className="anim-scale-in absolute right-2 top-2 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent text-accent-ink">
+                            <Check size={11} strokeWidth={3.2} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <h1 className="font-display text-[clamp(30px,6vw,42px)] font-semibold leading-[1.08] tracking-tight">
+                  Pick your canvas.
+                </h1>
+                <p className="mt-3.5 max-w-[48ch] text-[15px] leading-relaxed text-mute">
+                  The theme applies everywhere, instantly — and you can flip it later in settings.
+                </p>
+
+                <div className="mt-9 grid grid-cols-2 gap-3">
+                  {(["dark", "light"] as const).map((t, i) => {
+                    const selected = theme === t;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => setTheme(t)}
+                        className={`anim-fade-up rounded-2xl border p-2.5 text-left transition-all duration-200 ${
+                          selected
+                            ? "border-accent/70 shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_14%,transparent)]"
+                            : "border-line hover:-translate-y-1 hover:border-linestrong"
+                        }`}
+                        style={{ ["--d" as string]: `${90 + i * 70}ms` }}
+                        aria-pressed={selected}
+                      >
+                        {/* miniature app preview */}
+                        <span
+                          className="block overflow-hidden rounded-xl border"
+                          style={{
+                            background: t === "dark" ? "#131313" : "#f1efe9",
+                            borderColor: t === "dark" ? "#2a2a2a" : "#ddd8d0",
+                          }}
+                        >
+                          <span className="flex gap-2 p-3">
+                            <span className="hidden w-9 shrink-0 flex-col gap-1.5 sm:flex">
+                              <span className="h-1.5 w-full rounded-full" style={{ background: t === "dark" ? "#2f2f2f" : "#ddd8d0" }} />
+                              <span className="h-1.5 w-3/4 rounded-full" style={{ background: t === "dark" ? "#262626" : "#e4e0d8" }} />
+                              <span className="h-1.5 w-full rounded-full" style={{ background: t === "dark" ? "#262626" : "#e4e0d8" }} />
+                            </span>
+                            <span className="flex flex-1 flex-col gap-1.5">
+                              <span className="h-1.5 w-2/3 rounded-full" style={{ background: t === "dark" ? "#3a3a3a" : "#d4cfc6" }} />
+                              <span className="h-1.5 w-full rounded-full" style={{ background: t === "dark" ? "#2a2a2a" : "#e0dcd4" }} />
+                              <span className="h-1.5 w-1/2 rounded-full" style={{ background: t === "dark" ? "#f0a75e" : "#d9832f" }} />
+                              <span className="h-1.5 w-5/6 rounded-full" style={{ background: t === "dark" ? "#2a2a2a" : "#e0dcd4" }} />
+                            </span>
+                          </span>
+                        </span>
+                        <span className="mt-2.5 flex items-center justify-between px-1 pb-0.5">
+                          <span className={`text-[13.5px] font-semibold ${selected ? "text-ink" : "text-mute"}`}>
+                            {t === "dark" ? "Dark" : "Light"}
+                          </span>
+                          <span
+                            className={`grid h-[17px] w-[17px] place-items-center rounded-full border transition-all duration-200 ${
+                              selected ? "border-accent bg-accent text-accent-ink" : "border-linestrong"
+                            }`}
+                          >
+                            {selected && <Check size={10} strokeWidth={3.5} />}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* ready summary */}
+                <div className="anim-fade-up mt-7 flex items-center gap-3 rounded-2xl border border-line bg-surface1/70 px-4 py-3.5" style={{ ["--d" as string]: "220ms" }}>
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-avatar text-[12px] font-bold text-[#1a0e05]"
+                    style={avatar ? { backgroundImage: `url(${avatar})`, backgroundSize: "cover" } : undefined}
+                  >
+                    {!avatar && (name.trim() ? name.trim().charAt(0).toUpperCase() : "?")}
+                  </span>
+                  <span className="min-w-0 text-[13.5px] text-mute">
+                    Ready as <span className="font-semibold text-ink">{name.trim() || "you"}</span>
+                    {personaLabel && (
+                      <>
+                        {" · "}
+                        <span className="font-semibold text-ink">{personaLabel}</span>
+                      </>
+                    )}
+                    {" · "}
+                    <span className="font-semibold text-accent">{theme === "dark" ? "Dark" : "Light"} theme</span>
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </main>
+
+        {/* footer nav */}
+        <footer className="flex items-center gap-2 pb-[max(20px,env(safe-area-inset-bottom))] pt-2">
           {step > 1 ? (
             <button
               onClick={() => go(step - 1)}
-              className="flex items-center gap-1.5 rounded-lg px-3.5 py-2.5 text-sm font-medium text-mute transition-colors hover:bg-surface3 hover:text-ink"
+              className="flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-mute transition-all duration-200 hover:bg-surface2 hover:text-ink active:scale-95"
             >
-              <ChevronLeft size={15} /> Back
+              <ArrowLeft size={15} />
+              Back
             </button>
           ) : (
             <span />
           )}
-          {step < 3 ? (
-            <button onClick={() => go(3)} className="ml-auto rounded-lg px-3 py-2.5 text-[13.5px] text-mute transition-colors hover:text-ink hover:underline hover:underline-offset-4">
+
+          {step < 3 && (
+            <button
+              onClick={finish}
+              className="ml-auto rounded-xl px-3 py-2.5 text-[13px] text-mute transition-colors duration-200 hover:text-ink hover:underline hover:underline-offset-4"
+            >
               Skip for now
             </button>
-          ) : (
-            <span className="ml-auto" />
           )}
+
           <button
-            onClick={() => (step === 3 ? finish() : go(step + 1))}
-            className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-[14.5px] font-semibold text-[#06131f] shadow-[0_4px_18px_rgba(74,158,255,0.25)] transition-all hover:bg-accent2 hover:shadow-[0_6px_22px_rgba(74,158,255,0.35)] active:scale-[0.97]"
+            onClick={next}
+            disabled={step === 1 && !name.trim()}
+            className={`group flex items-center gap-2 rounded-xl px-5 py-2.5 text-[14px] font-semibold transition-all duration-200 active:scale-95 ${
+              step === 1 && !name.trim()
+                ? "cursor-not-allowed bg-surface3 text-mute/60"
+                : "bg-accent text-accent-ink shadow-[0_6px_22px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] hover:bg-accent2"
+            } ${step === 3 && step > 1 ? "" : step <= 1 ? "ml-auto" : ""}`}
           >
-            {step === 3 ? "Enter chat" : "Continue"}
-            {step === 3 ? <ArrowRight size={16} /> : <ChevronRight size={16} />}
+            {step === 3 ? "Enter Luca" : "Continue"}
+            <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </footer>
       </div>

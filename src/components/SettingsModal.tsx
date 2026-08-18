@@ -5,7 +5,6 @@ import type { Settings } from "../lib/luca";
 interface Props {
   open: boolean;
   settings: Settings;
-  backendLive: boolean;
   onChange: (patch: Partial<Settings>) => void;
   onClose: () => void;
 }
@@ -18,10 +17,13 @@ function Toggle({ checked, onToggle, label, hint }: { checked: boolean; onToggle
         <span className="block text-xs text-mute">{hint}</span>
       </span>
       <span
-        className={`relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors duration-150 ${checked ? "bg-accent" : "bg-surface3"}`}
+        className={`relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors duration-200 ${checked ? "bg-accent" : "bg-surface3"}`}
       >
         <span
-          className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-all duration-150 ${checked ? "left-[17px]" : "left-[3px]"}`}
+          className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
+            checked ? "left-[17px]" : "left-[3px]"
+          }`}
+          style={{ transitionTimingFunction: "var(--ease-spring)" }}
         />
       </span>
     </button>
@@ -31,7 +33,7 @@ function Toggle({ checked, onToggle, label, hint }: { checked: boolean; onToggle
 function Slider({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
   return (
     <div className="py-1.5">
-      <div className="mb-1.5 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <span className="text-[13px] font-medium">{label}</span>
         <span className="font-mono text-[11.5px] text-mute">{value}</span>
       </div>
@@ -41,14 +43,15 @@ function Slider({ value, onChange, label }: { value: number; onChange: (v: numbe
         max={100}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface3 accent-[var(--color-accent)]"
+        className="w-full cursor-pointer"
+        style={{ ["--fill" as string]: `${value}%` }}
         aria-label={label}
       />
     </div>
   );
 }
 
-export default function SettingsModal({ open, settings, backendLive, onChange, onClose }: Props) {
+export default function SettingsModal({ open, settings, onChange, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -59,16 +62,24 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[3px]" onMouseDown={onClose}>
+    <div
+      className="anim-fade-in fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-[3px]"
+      style={{ animationDuration: "0.25s" }}
+      onMouseDown={onClose}
+    >
       <div
-        className="anim-pop max-h-[86vh] w-full max-w-[520px] overflow-y-auto rounded-2xl border border-linestrong bg-surface1 shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
+        className="anim-scale-in max-h-[86vh] w-full max-w-[520px] overflow-y-auto rounded-2xl border border-linestrong bg-surface1 shadow-[0_24px_60px_rgba(0,0,0,0.6)]"
         onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Settings"
       >
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="font-display text-[17px] font-semibold">Settings</h2>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-mute hover:bg-surface3 hover:text-ink" aria-label="Close settings">
+          <button
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-lg text-mute transition-all duration-150 hover:bg-surface3 hover:text-ink active:scale-90"
+            aria-label="Close settings"
+          >
             <X size={17} />
           </button>
         </div>
@@ -78,25 +89,15 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
             <label htmlFor="backend-url" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.05em] text-mute">
               Backend URL
             </label>
-            <div className="flex gap-2">
-              <input
-                id="backend-url"
-                value={settings.backendUrl}
-                onChange={(e) => onChange({ backendUrl: e.target.value })}
-                placeholder="http://localhost:3000"
-                className="min-w-0 flex-1 rounded-lg border border-linestrong bg-surface2 px-3 py-2 font-mono text-[16px] text-ink outline-none placeholder:text-mute/70 focus:border-accent md:text-[13px]"
-              />
-              <span
-                className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-semibold ${
-                  backendLive ? "border-ok/40 text-ok" : "border-line text-mute"
-                }`}
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${backendLive ? "bg-ok" : "bg-mute"}`} />
-                {backendLive ? "Reachable" : "Offline"}
-              </span>
-            </div>
+            <input
+              id="backend-url"
+              value={settings.backendUrl}
+              onChange={(e) => onChange({ backendUrl: e.target.value })}
+              placeholder="http://localhost:3000"
+              className="w-full rounded-lg border border-linestrong bg-surface2 px-3 py-2.5 font-mono text-[16px] text-ink transition-colors duration-200 placeholder:text-mute/60 hover:border-[#484848] focus:border-linestrong focus:bg-surface3 md:text-[13px]"
+            />
             <p className="mt-1.5 text-xs text-mute">
-              Stored in <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">luca-settings</code> — same key the
+              Stored in <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">luca-settings</code> — the same key the
               original <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">getBackendUrl()</code> reads.
             </p>
           </div>
@@ -108,11 +109,17 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
                 <button
                   key={t}
                   onClick={() => onChange({ theme: t })}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-medium transition-colors ${
-                    settings.theme === t ? "border-accent bg-accent/10 text-ink" : "border-line bg-surface2 text-mute hover:text-ink"
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-[13px] font-medium transition-all duration-200 active:scale-[0.97] ${
+                    settings.theme === t
+                      ? "border-accent/70 bg-accent/10 text-ink"
+                      : "border-line bg-surface2 text-mute hover:border-linestrong hover:text-ink"
                   }`}
                 >
-                  {t === "dark" ? <Moon size={14} className={settings.theme === t ? "text-accent" : ""} /> : <Sun size={14} className={settings.theme === t ? "text-accent" : ""} />}
+                  {t === "dark" ? (
+                    <Moon size={14} className={settings.theme === t ? "text-accent" : ""} />
+                  ) : (
+                    <Sun size={14} className={settings.theme === t ? "text-accent" : ""} />
+                  )}
                   {t === "dark" ? "Dark" : "Light"}
                 </button>
               ))}
@@ -163,9 +170,11 @@ export default function SettingsModal({ open, settings, backendLive, onChange, o
               onChange={(e) => onChange({ customPrompt: e.target.value })}
               rows={3}
               placeholder="Always answer concisely. Prefer TypeScript examples…"
-              className="w-full resize-none rounded-lg border border-linestrong bg-surface2 px-3 py-2 text-[16px] text-ink outline-none placeholder:text-mute/70 focus:border-accent md:text-[13.5px]"
+              className="w-full resize-none rounded-lg border border-linestrong bg-surface2 px-3 py-2.5 text-[16px] text-ink transition-colors duration-200 placeholder:text-mute/60 hover:border-[#484848] focus:border-linestrong focus:bg-surface3 md:text-[13.5px]"
             />
-            <p className="mt-1.5 text-xs text-mute">Sent to the backend as <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">userSettings.customPrompt</code>.</p>
+            <p className="mt-1.5 text-xs text-mute">
+              Sent to the backend as <code className="rounded bg-surface3 px-1 py-px font-mono text-[11px]">userSettings.customPrompt</code>.
+            </p>
           </div>
         </div>
       </div>

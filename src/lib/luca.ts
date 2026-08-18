@@ -55,7 +55,6 @@ export interface Settings {
   theme: "dark" | "light";
   enterToSend: boolean;
   showTimestamps: boolean;
-  streamSpeed: number; // chars per tick: 2 | 3 | 5 | 8
   backendUrl: string;
   customPrompt: string;
   personality: { creativity: number; formality: number; verbosity: number };
@@ -110,7 +109,6 @@ const DEFAULT_SETTINGS: Settings = {
   theme: "dark",
   enterToSend: true,
   showTimestamps: true,
-  streamSpeed: 3,
   backendUrl: "",
   customPrompt: "",
   personality: { creativity: 50, formality: 50, verbosity: 50 },
