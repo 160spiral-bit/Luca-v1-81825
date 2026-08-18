@@ -36,18 +36,6 @@ export function isAbortError(e: unknown): boolean {
   return e instanceof DOMException && e.name === "AbortError";
 }
 
-export async function healthCheck(): Promise<boolean> {
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 2500);
-    const res = await fetch(getBackendUrl() + "/api/health", { signal: ctrl.signal });
-    clearTimeout(t);
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
 export async function nameChat(userMessage: string, assistantReply: string): Promise<string | null> {
   try {
     const ctrl = new AbortController();

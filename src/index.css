@@ -1,183 +1,264 @@
 @import "tailwindcss";
 
+/* ============================================================
+   LUCA AI — theme tokens (warm gold scheme, no blue anywhere)
+   ============================================================ */
+:root {
+  --bg: #0d0d0d;
+  --surface-1: #1a1a1a;
+  --surface-2: #212121;
+  --surface-3: #2a2a2a;
+  --surface-4: #2f2f2f;
+  --border: #2a2a2a;
+  --border-strong: #3a3a3a;
+  --text: #ececec;
+  --text-mute: #8e8ea0;
+  --accent: #f0b35c; /* warm gold — links, active states, accents */
+  --accent-2: #f0b35c; /* send button */
+  --avatar: #d97a3e;
+  --danger: #ff6b62;
+  --ok: #3fbf7f;
+  --warn: #e07b39;
+}
+
+[data-theme="light"] {
+  --bg: #f4f3f0;
+  --surface-1: #eae8e3;
+  --surface-2: #e1ded7;
+  --surface-3: #d5d1c8;
+  --surface-4: #e8e6e0;
+  --border: #dcd8cf;
+  --border-strong: #c9c4b9;
+  --text: #1f1e1b;
+  --text-mute: #77746c;
+  --accent: #b07818;
+  --accent-2: #d99a2b;
+  --avatar: #d97a3e;
+  --danger: #d33f36;
+  --ok: #1f8f58;
+  --warn: #c25f1f;
+}
+
 @theme {
-  --color-canvas: #0d0d0d;
-  --color-surface1: #1a1a1a;
-  --color-surface2: #212121;
-  --color-surface3: #2a2a2a;
-  --color-surface4: #2f2f2f;
-  --color-line: #2a2a2a;
-  --color-linestrong: #3a3a3a;
-  --color-ink: #ececec;
-  --color-mute: #8e8ea0;
-  --color-accent: #4a9eff;
-  --color-accent2: #5aa9ff;
-  --color-avatar: #d97a3e;
-  --color-danger: #ff6b62;
-  --color-ok: #3fbf7f;
-  --color-warn: #c8a24a;
+  --color-canvas: var(--bg);
+  --color-surface1: var(--surface-1);
+  --color-surface2: var(--surface-2);
+  --color-surface3: var(--surface-3);
+  --color-surface4: var(--surface-4);
+  --color-line: var(--border);
+  --color-linestrong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-mute: var(--text-mute);
+  --color-accent: var(--accent);
+  --color-accent2: var(--accent-2);
+  --color-avatar: var(--avatar);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
 
   --font-display: "Space Grotesk", "Instrument Sans", sans-serif;
-  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --font-sans: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* motion system */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Light theme — utilities compile to var() refs, so token overrides retheme everything */
-html[data-theme="light"] {
-  --color-canvas: #f5f5f6;
-  --color-surface1: #ffffff;
-  --color-surface2: #eaeaed;
-  --color-surface3: #dddde2;
-  --color-surface4: #e4e4e8;
-  --color-line: #e0e0e4;
-  --color-linestrong: #c9c9d0;
-  --color-ink: #1c1c1e;
-  --color-mute: #6f6f7a;
-  --color-accent: #2b7fe0;
-  --color-accent2: #2b7fe0;
-  --color-danger: #d94f46;
-  --color-ok: #2f9e6b;
-  --color-warn: #a8842f;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  /* no focus rings anywhere — hover/press states carry the feedback */
+  :focus,
+  :focus-visible {
+    outline: none;
+  }
 }
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-}
-
-body {
-  background-color: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-}
-
-::selection {
-  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
-}
-
+/* ---------- scrollbars ---------- */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-surface3) transparent;
+  scrollbar-color: var(--surface-3) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--color-surface3);
+  background: var(--surface-3);
   border-radius: 8px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--color-linestrong);
+  background: var(--border-strong);
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+/* ============================================================
+   ANIMATION SYSTEM
+   ============================================================ */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-@keyframes luca-rise {
+@keyframes fade {
   from {
     opacity: 0;
-    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-@keyframes luca-pop {
+
+@keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-4px) scale(0.97);
+    transform: translateY(18px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-@keyframes luca-blink {
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
   to {
-    visibility: hidden;
+    transform: translateX(340%);
   }
 }
-@keyframes luca-pulse {
+
+@keyframes breathe {
   0%,
   100% {
-    opacity: 0.35;
-    transform: scale(0.8);
+    transform: scale(1);
+    opacity: 1;
   }
   50% {
-    opacity: 1;
-    transform: scale(1.12);
+    transform: scale(1.06);
+    opacity: 0.85;
   }
 }
-@keyframes luca-dot {
+
+@keyframes ring-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes dot-bounce {
   0%,
   80%,
   100% {
     transform: translateY(0);
-    opacity: 0.45;
+    opacity: 0.4;
   }
   40% {
     transform: translateY(-4px);
     opacity: 1;
   }
 }
-@keyframes luca-toast {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.97);
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.75);
   }
-  to {
+  50% {
     opacity: 1;
-    transform: none;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes cursor-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 .anim-rise {
-  animation: luca-rise 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: rise 0.5s var(--ease-out) both;
+}
+.anim-fade {
+  animation: fade 0.4s var(--ease-out) both;
 }
 .anim-pop {
-  animation: luca-pop 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pop 0.2s var(--ease-spring) both;
 }
 .anim-toast {
-  animation: luca-toast 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: toast-in 0.32s var(--ease-spring) both;
 }
-
-.stream-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 16px;
-  margin-left: 3px;
-  vertical-align: -3px;
-  border-radius: 2px;
-  background: var(--color-ink);
-  animation: luca-blink 1s steps(2, start) infinite;
-}
-
-.pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: luca-pulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+.anim-scale-in {
+  animation: pop 0.26s var(--ease-spring) both;
 }
 
 .typing-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--color-mute);
-  animation: luca-dot 1.1s ease-in-out infinite;
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 99px;
+  background: currentColor;
+  animation: dot-bounce 1.1s var(--ease-out) infinite;
 }
 .typing-dot:nth-child(2) {
   animation-delay: 0.15s;
@@ -186,6 +267,120 @@ body {
   animation-delay: 0.3s;
 }
 
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--accent);
+  animation: pulse-dot 1.4s var(--ease-out) infinite;
+}
+
+.stream-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 17px;
+  margin-left: 3px;
+  vertical-align: -3px;
+  border-radius: 2px;
+  background: var(--text);
+  animation: cursor-blink 1.05s steps(1) infinite;
+}
+
+.shimmer-track {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.22),
+    transparent
+  );
+  animation: shimmer 1.6s var(--ease-out) infinite;
+}
+
+/* ---------- onboarding step transitions ---------- */
+.step-pane {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(32px);
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out);
+}
+.step-pane.active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.step-pane.exit-left {
+  opacity: 0;
+  transform: translateX(-32px);
+}
+
+/* ============================================================
+   MARKDOWN — warm syntax palette (hljs github-dark overrides)
+   ============================================================ */
+.markdown-body {
+  min-width: 0;
+}
+.markdown-body .hljs-keyword,
+.markdown-body .hljs-selector-tag,
+.markdown-body .hljs-deletion {
+  color: #f0b35c;
+}
+.markdown-body .hljs-string,
+.markdown-body .hljs-regexp,
+.markdown-body .hljs-addition {
+  color: #a3c98f;
+}
+.markdown-body .hljs-number,
+.markdown-body .hljs-literal {
+  color: #e07b39;
+}
+.markdown-body .hljs-title,
+.markdown-body .hljs-title.function_,
+.markdown-body .hljs-section {
+  color: #e8c07d;
+}
+.markdown-body .hljs-title.class_,
+.markdown-body .hljs-type,
+.markdown-body .hljs-built_in {
+  color: #d3b078;
+}
+.markdown-body .hljs-attr,
+.markdown-body .hljs-attribute,
+.markdown-body .hljs-variable,
+.markdown-body .hljs-template-variable,
+.markdown-body .hljs-params {
+  color: #d9b98a;
+}
+.markdown-body .hljs-comment,
+.markdown-body .hljs-quote,
+.markdown-body .hljs-meta {
+  color: #6f6f7e;
+  font-style: italic;
+}
+.markdown-body .hljs-name,
+.markdown-body .hljs-selector-class,
+.markdown-body .hljs-selector-id {
+  color: #e8c07d;
+}
+.markdown-body .hljs-emphasis {
+  font-style: italic;
+}
+.markdown-body .hljs-strong {
+  font-weight: 600;
+}
+
+/* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
